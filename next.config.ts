@@ -22,6 +22,12 @@ const nextConfig: NextConfig = {
         port: '',
         pathname: '/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'image01-in.oneplus.net',
+        port: '',
+        pathname: '/**',
+      },
     ],
   },
 };
