@@ -7,6 +7,8 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetFooter } from '@/com
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Trash2, Plus, Minus } from 'lucide-react';
 import { Separator } from './ui/separator';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 
 interface CartProps {
   isOpen: boolean;
@@ -15,6 +17,12 @@ interface CartProps {
 
 export default function Cart({ isOpen, onOpenChange }: CartProps) {
   const { cart, removeFromCart, updateQuantity, subtotal, totalItems, clearCart } = useCart();
+  const router = useRouter();
+
+  const handleCheckout = () => {
+    onOpenChange(false);
+    router.push('/checkout');
+  };
 
   return (
     <Sheet open={isOpen} onOpenChange={onOpenChange}>
@@ -80,7 +88,7 @@ export default function Cart({ isOpen, onOpenChange }: CartProps) {
                     <span>Subtotal</span>
                     <span>${subtotal.toFixed(2)}</span>
                 </div>
-                <Button size="lg" className="w-full font-bold">
+                <Button size="lg" className="w-full font-bold" onClick={handleCheckout}>
                     Proceed to Checkout
                 </Button>
             </SheetFooter>
