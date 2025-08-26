@@ -1,5 +1,5 @@
 import { initializeApp, getApps, getApp } from "firebase/app";
-import { getFirestore, collection, doc, setDoc, writeBatch } from "firebase/firestore";
+import { getFirestore, collection, doc, writeBatch } from "firebase/firestore";
 import { products as localProducts } from '../src/lib/data';
 
 // IMPORTANT: Make sure to paste your Firebase config object here
