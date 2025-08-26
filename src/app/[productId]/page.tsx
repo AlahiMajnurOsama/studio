@@ -5,11 +5,13 @@ import { notFound } from "next/navigation";
 import ProductDetailsClient from "./ProductDetailsClient";
 import ProductCard from "@/components/ProductCard";
 
+export const dynamic = 'force-dynamic';
+
 async function getProduct(productId: string): Promise<Product | null> {
   const docRef = doc(db, "products", productId);
   const docSnap = await getDoc(docRef);
   if (docSnap.exists()) {
-    return docSnap.data() as Product;
+    return { ...docSnap.data(), id: docSnap.id } as Product;
   }
   return null;
 }
@@ -17,15 +19,20 @@ async function getProduct(productId: string): Promise<Product | null> {
 async function getRelatedProducts(product: Product): Promise<Product[]> {
     if (!product.category) return [];
     
+    // Fetch 5 products of the same category
     const q = query(
         collection(db, "products"), 
         where("category", "==", product.category),
-        where("id", "!=", product.id),
-        limit(4)
+        limit(5)
     );
     
     const querySnapshot = await getDocs(q);
-    return querySnapshot.docs.map(doc => doc.data() as Product);
+    
+    // Filter out the current product from the results and take the first 4
+    return querySnapshot.docs
+        .map(doc => ({ ...doc.data(), id: doc.id }) as Product)
+        .filter(p => p.id !== product.id)
+        .slice(0, 4);
 }
 
 
