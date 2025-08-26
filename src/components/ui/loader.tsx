@@ -6,8 +6,8 @@ export const Loader = ({ className }: { className?: string }) => {
       <svg height="128px" width="128px" viewBox="0 0 128 128" className="pl1">
         <defs>
           <linearGradient y2="1" x2="1" y1="0" x1="0" id="pl-grad">
-            <stop stop-color="hsl(var(--foreground))" offset="0%"></stop>
-            <stop stop-color="hsl(var(--background))" offset="100%"></stop>
+            <stop stopColor="hsl(var(--foreground))" offset="0%"></stop>
+            <stop stopColor="hsl(var(--background))" offset="100%"></stop>
           </linearGradient>
           <mask id="pl-mask">
             <rect fill="url(#pl-grad)" height="128" width="128" y="0" x="0"></rect>
