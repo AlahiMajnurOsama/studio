@@ -70,8 +70,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
         </CardContent>
         <CardFooter className="p-4 pt-0">
           <Button
-            variant="outline"
-            className="w-full transition-all duration-300 active:scale-95 hover:shadow-lg hover:shadow-primary/30 hover:bg-primary hover:text-primary-foreground"
+            className="w-full font-bold transition-all duration-300 active:scale-95 hover:shadow-lg hover:shadow-primary/30 hover:-translate-y-0.5"
             onClick={handleAddToCart}
           >
             <ShoppingBag className="mr-2 h-5 w-5" /> Add to Bag

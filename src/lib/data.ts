@@ -9,6 +9,7 @@ export const products: Product[] = [
     image: 'https://picsum.photos/seed/aura/600/400',
     category: 'Electronics',
     colors: ['#343a40', '#f8f9fa', '#9D4EDD'],
+    variants: [{ name: 'Standard' }, { name: 'Pro', priceModifier: 50 }],
     popularity: 95,
   },
   {
@@ -19,6 +20,7 @@ export const products: Product[] = [
     image: 'https://picsum.photos/seed/chroma/600/400',
     category: 'Home & Living',
     colors: ['#E9D5FF', '#ffffff', '#5A86FF'],
+    sizes: ['Small', 'Medium', 'Large'],
     popularity: 88,
   },
   {
@@ -29,6 +31,7 @@ export const products: Product[] = [
     image: 'https://picsum.photos/seed/spectrum/600/400',
     category: 'Fashion',
     colors: ['#212529', '#ffffff', '#ced4da'],
+    sizes: ['S', 'M', 'L', 'XL'],
     popularity: 92,
   },
   {
@@ -49,6 +52,10 @@ export const products: Product[] = [
     image: 'https://picsum.photos/seed/nova/600/400',
     category: 'Electronics',
     colors: ['#343a40', '#9D4EDD', '#5A86FF'],
+    variants: [
+      { name: 'Standard' },
+      { name: 'Titanium', priceModifier: 80 },
+    ],
     popularity: 98,
   },
   {
@@ -99,6 +106,7 @@ export const products: Product[] = [
     image: 'https://picsum.photos/seed/sneakers/600/400',
     category: 'Fashion',
     colors: ['#ffffff', '#f8f9fa'],
+    sizes: ['8', '9', '10', '11', '12'],
     popularity: 89,
   },
   {
@@ -119,6 +127,7 @@ export const products: Product[] = [
     image: 'https://picsum.photos/seed/plush/600/400',
     category: 'Home & Living',
     colors: ['#E9D5FF', '#ced4da'],
+    sizes: ['Standard', 'King'],
     popularity: 84,
   },
   {

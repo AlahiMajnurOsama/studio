@@ -33,23 +33,9 @@ export default function ProductDetailsPage({
           />
            <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
         </div>
-        <div className="flex flex-col h-full space-y-8">
-            <div className="space-y-4 text-center md:text-left">
-              <p className="text-primary font-semibold tracking-wider uppercase">{product.category}</p>
-              <h1 className="text-4xl md:text-5xl font-bold font-headline tracking-tighter bg-clip-text text-transparent bg-gradient-to-r from-foreground to-muted-foreground">
-                {product.name}
-              </h1>
-              <p className="text-3xl font-semibold text-primary">
-                ${product.price.toFixed(2)}
-              </p>
-              <p className="text-muted-foreground text-lg leading-relaxed pt-4">
-                {product.description}
-              </p>
-            </div>
-          
-          <ProductDetailsClient product={product} />
+        
+        <ProductDetailsClient product={product} />
 
-        </div>
       </div>
       
       {relatedProducts.length > 0 && (
