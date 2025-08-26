@@ -18,6 +18,7 @@ import { useAppContext } from '@/context/AppContext';
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { usePathname, useRouter } from 'next/navigation';
+import PackageOpen from './icons/PackageOpen';
 
 const ThemeSwitcher = () => {
   const { theme, setTheme } = useAppContext();
@@ -154,6 +155,7 @@ const Header = () => {
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-20">
           <a href="/" onClick={handleNav('/')} className="flex items-center space-x-2">
+            <PackageOpen className="w-8 h-8 text-primary" />
             <Logo />
           </a>
           
