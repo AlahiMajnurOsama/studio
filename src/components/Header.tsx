@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useRef } from 'react';
@@ -15,6 +16,7 @@ import {
 } from '@/components/ui/select';
 import { useAppContext } from '@/context/AppContext';
 import { cn } from '@/lib/utils';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const ThemeSwitcher = () => {
   const { theme, setTheme } = useAppContext();
@@ -47,7 +49,7 @@ const ThemeSwitcher = () => {
   );
 };
 
-const Header = () => {
+const SearchBar = () => {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const { search, setSearch, sort, setSort } = useAppContext();
   const searchRef = useRef<HTMLDivElement>(null);
@@ -68,68 +70,77 @@ const Header = () => {
   }, []);
 
   return (
+    <div
+      ref={searchRef}
+      className={cn(
+        'relative transition-all duration-300 ease-in-out w-full md:absolute md:left-1/2 md:top-1/2 md:-translate-x-1/2 md:-translate-y-1/2',
+        isSearchOpen ? 'max-w-md' : 'md:w-64'
+      )}
+    >
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+        <Input
+          type="text"
+          placeholder="Search products..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          onFocus={() => setIsSearchOpen(true)}
+          className="pl-10 w-full rounded-full bg-secondary/50 focus:bg-background"
+        />
+        {search && (
+          <Button
+            variant="ghost"
+            size="icon"
+            className="absolute right-2 top-1/2 -translate-y-1/2 h-7 w-7 rounded-full"
+            onClick={() => setSearch('')}
+          >
+            <X className="h-4 w-4" />
+          </Button>
+        )}
+      </div>
+      <div
+        className={cn(
+          'absolute top-full mt-2 w-full origin-top transition-all duration-200 ease-in-out z-20',
+          isSearchOpen
+            ? 'scale-y-100 opacity-100'
+            : 'scale-y-95 opacity-0 pointer-events-none'
+        )}
+      >
+        <div className="p-4 bg-background rounded-lg shadow-lg border">
+          <p className="text-sm font-medium mb-2">Sort by:</p>
+          <Select value={sort} onValueChange={setSort}>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Sort by" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="popularity-desc">Popularity</SelectItem>
+              <SelectItem value="price-asc">
+                Price: Low to High
+              </SelectItem>
+              <SelectItem value="price-desc">
+                Price: High to Low
+              </SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+
+const Header = () => {
+  const isMobile = useIsMobile();
+
+  return (
     <header className="fixed top-0 left-0 right-0 z-50 w-full bg-background/80 backdrop-blur-md">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-20">
           <Link href="/" className="flex items-center space-x-2">
             <Logo />
           </Link>
-
-          <div
-            ref={searchRef}
-            className={cn(
-              'absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 transition-all duration-300 ease-in-out',
-              isSearchOpen ? 'w-full max-w-md' : 'w-64'
-            )}
-          >
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-              <Input
-                type="text"
-                placeholder="Search products..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                onFocus={() => setIsSearchOpen(true)}
-                className="pl-10 w-full rounded-full bg-secondary/50 focus:bg-background"
-              />
-              {search && (
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="absolute right-2 top-1/2 -translate-y-1/2 h-7 w-7 rounded-full"
-                  onClick={() => setSearch('')}
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              )}
-            </div>
-            <div
-              className={cn(
-                'absolute top-full mt-2 w-full origin-top transition-all duration-200 ease-in-out',
-                isSearchOpen
-                  ? 'scale-y-100 opacity-100'
-                  : 'scale-y-95 opacity-0 pointer-events-none'
-              )}
-            >
-              <div className="p-4 bg-background rounded-lg shadow-lg border">
-                <p className="text-sm font-medium mb-2">Sort by:</p>
-                <Select value={sort} onValueChange={setSort}>
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Sort by" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="popularity-desc">Popularity</SelectItem>
-                    <SelectItem value="price-asc">
-                      Price: Low to High
-                    </SelectItem>
-                    <SelectItem value="price-desc">
-                      Price: High to Low
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          </div>
+          
+          {!isMobile && <SearchBar />}
 
           <div className="flex items-center gap-2">
             <ThemeSwitcher />
@@ -143,6 +154,7 @@ const Header = () => {
             </Button>
           </div>
         </div>
+        {isMobile && <div className="pb-4 px-4"><SearchBar /></div>}
       </div>
     </header>
   );
