@@ -5,7 +5,7 @@ import ProductCard from "./ProductCard";
 import { products } from "@/lib/data";
 import type { Product } from "@/lib/types";
 import { getProductRecommendations } from "@/ai/flows/product-recommendations";
-import { Skeleton } from "./ui/skeleton";
+import { Loader } from "./ui/loader";
 
 const BROWSING_HISTORY_KEY = "chromashop_browsing_history";
 
@@ -60,14 +60,8 @@ export default function ProductRecommendations() {
         <h2 className="text-3xl font-bold text-center mb-8 font-headline">
           Recommended For You
         </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {[...Array(4)].map((_, i) => (
-             <div key={i} className="space-y-2">
-                <Skeleton className="h-48 w-full" />
-                <Skeleton className="h-6 w-3/4" />
-                <Skeleton className="h-5 w-1/4" />
-            </div>
-          ))}
+        <div className="flex justify-center items-center py-10">
+          <Loader />
         </div>
       </section>
     );
