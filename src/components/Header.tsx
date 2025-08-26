@@ -178,7 +178,7 @@ const UserProfileButton = () => {
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={handleAdminPanel}>
                       <Shield className="mr-2 h-4 w-4" />
-                      <span>Admin Panel</span>
+                      <span>Admin Dashboard</span>
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={handleSignOut}>
@@ -238,7 +238,7 @@ const Header = () => {
             <UserProfileButton />
           </div>
         </div>
-        {isMobile && <div className="pb-4 px-4"><SearchBar /></div>}
+        {isMobile && !pathname.startsWith('/admin') && <div className="pb-4 px-4"><SearchBar /></div>}
       </div>
     </header>
   );

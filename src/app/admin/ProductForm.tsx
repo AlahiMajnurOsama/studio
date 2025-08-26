@@ -1,13 +1,14 @@
 "use client";
 
-import { useForm } from "react-hook-form";
+import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import type { Product } from "@/lib/types";
+import type { Product, ProductVariant } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -23,15 +24,20 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useEffect } from "react";
+import { PlusCircle, Trash2 } from "lucide-react";
 
 const formSchema = z.object({
-  name: z.string().min(2, "Name must be at least 2 characters."),
-  description: z.string().min(10, "Description must be at least 10 characters."),
-  price: z.coerce.number().min(0.01, "Price must be a positive number."),
-  image: z.string().url("Must be a valid URL."),
-  category: z.enum(['Health & Beauty', 'Electronics', 'Fashion', 'Home & Living', 'Groceries']),
-  colors: z.string().min(1, "At least one color is required."), // Comma-separated
+  name: z.string().min(1, "Product name is required."),
+  description: z.string().optional(),
+  price: z.coerce.number().min(0, "Price must be a positive number.").optional(),
+  image: z.string().url("Must be a valid URL.").optional(),
+  category: z.enum(['Health & Beauty', 'Electronics', 'Fashion', 'Home & Living', 'Groceries']).optional(),
+  colors: z.string().optional(), // Comma-separated
   sizes: z.string().optional(), // Comma-separated
+  variants: z.array(z.object({
+    name: z.string().min(1, "Variant name cannot be empty"),
+    priceModifier: z.coerce.number().optional()
+  })).optional(),
 });
 
 type ProductFormValues = z.infer<typeof formSchema>;
@@ -47,9 +53,10 @@ export default function ProductForm({ onSubmit, product }: ProductFormProps) {
     description: product?.description || "",
     price: product?.price || 0,
     image: product?.image || "",
-    category: product?.category || "Fashion",
-    colors: product?.colors.join(", ") || "",
+    category: product?.category || undefined,
+    colors: product?.colors?.join(", ") || "",
     sizes: product?.sizes?.join(", ") || "",
+    variants: product?.variants || [],
   };
 
   const form = useForm<ProductFormValues>({
@@ -57,17 +64,26 @@ export default function ProductForm({ onSubmit, product }: ProductFormProps) {
     defaultValues,
   });
   
+  const { fields, append, remove } = useFieldArray({
+    control: form.control,
+    name: "variants",
+  });
+
   useEffect(() => {
-    form.reset(defaultValues);
+    if (product) {
+      form.reset(defaultValues);
+    }
   }, [product, form.reset]);
 
 
   const handleSubmit = (values: ProductFormValues) => {
     const transformedValues: Omit<Product, "id" | "popularity"> = {
       ...values,
-      colors: values.colors.split(",").map((s) => s.trim()),
-      sizes: values.sizes ? values.sizes.split(",").map((s) => s.trim()) : [],
-      // Variants are not handled in this form for simplicity
+      price: values.price || 0,
+      image: values.image || '',
+      colors: values.colors ? values.colors.split(",").map((s) => s.trim()).filter(Boolean) : [],
+      sizes: values.sizes ? values.sizes.split(",").map((s) => s.trim()).filter(Boolean) : [],
+      variants: values.variants?.map(v => ({...v, priceModifier: v.priceModifier || 0}))
     };
     onSubmit(transformedValues, product?.id);
   };
@@ -107,7 +123,7 @@ export default function ProductForm({ onSubmit, product }: ProductFormProps) {
             name="price"
             render={({ field }) => (
                 <FormItem>
-                <FormLabel>Price</FormLabel>
+                <FormLabel>Base Price</FormLabel>
                 <FormControl>
                     <Input type="number" step="0.01" placeholder="249.99" {...field} />
                 </FormControl>
@@ -158,10 +174,13 @@ export default function ProductForm({ onSubmit, product }: ProductFormProps) {
             name="colors"
             render={({ field }) => (
                 <FormItem>
-                <FormLabel>Colors (comma-separated hex codes)</FormLabel>
+                <FormLabel>Colors</FormLabel>
                 <FormControl>
                     <Input placeholder="#343a40, #f8f9fa, #9D4EDD" {...field} />
                 </FormControl>
+                <FormDescription>
+                    Comma-separated hex codes.
+                </FormDescription>
                 <FormMessage />
                 </FormItem>
             )}
@@ -171,14 +190,70 @@ export default function ProductForm({ onSubmit, product }: ProductFormProps) {
             name="sizes"
             render={({ field }) => (
                 <FormItem>
-                <FormLabel>Sizes (comma-separated)</FormLabel>
+                <FormLabel>Sizes</FormLabel>
                 <FormControl>
                     <Input placeholder="S, M, L, XL" {...field} />
                 </FormControl>
+                <FormDescription>
+                    Comma-separated values.
+                </FormDescription>
                 <FormMessage />
                 </FormItem>
             )}
         />
+
+        <div>
+            <FormLabel>Variants (e.g., Standard, Pro, 128GB)</FormLabel>
+            <FormDescription className="mb-2">
+                Add different versions of the product. You can add a price modifier for each.
+            </FormDescription>
+            <div className="space-y-4">
+                {fields.map((field, index) => (
+                    <div key={field.id} className="flex items-end gap-4 p-4 border rounded-md">
+                        <FormField
+                        control={form.control}
+                        name={`variants.${index}.name`}
+                        render={({ field }) => (
+                            <FormItem className="flex-grow">
+                                <FormLabel>Variant Name</FormLabel>
+                                <FormControl>
+                                    <Input placeholder="e.g. Pro" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                        />
+                        <FormField
+                        control={form.control}
+                        name={`variants.${index}.priceModifier`}
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Price Modifier</FormLabel>
+                                <FormControl>
+                                    <Input type="number" step="0.01" placeholder="+50.00" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                        />
+                        <Button type="button" variant="destructive" size="icon" onClick={() => remove(index)}>
+                            <Trash2 className="h-4 w-4" />
+                        </Button>
+                    </div>
+                ))}
+            </div>
+            <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="mt-2"
+                onClick={() => append({ name: '', priceModifier: 0 })}
+            >
+                <PlusCircle className="mr-2 h-4 w-4" />
+                Add Variant
+            </Button>
+        </div>
+
 
         <div className="flex justify-end">
             <Button type="submit">

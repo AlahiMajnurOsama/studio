@@ -9,8 +9,8 @@ export type Product = {
   description: string;
   price: number;
   image: string;
-  category: 'Health & Beauty' | 'Electronics' | 'Fashion' | 'Home & Living' | 'Groceries';
-  colors: string[]; // hex codes
+  category?: 'Health & Beauty' | 'Electronics' | 'Fashion' | 'Home & Living' | 'Groceries';
+  colors?: string[]; // hex codes
   sizes?: string[];
   variants?: ProductVariant[];
   popularity: number; // 0-100
