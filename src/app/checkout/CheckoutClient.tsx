@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useRef } from "react";
@@ -10,11 +11,11 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import Image from "next/image";
-import { CheckCircle, ShoppingBag, FileText, Download, Printer } from "lucide-react";
+import { CheckCircle, ShoppingBag, Download } from "lucide-react";
 import Link from "next/link";
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
-import Logo from "@/components/icons/Logo";
+import { format } from 'date-fns';
 
 
 type CheckoutStep = "initial" | "guest_form" | "payment" | "success";
@@ -23,6 +24,7 @@ interface CompletedOrder {
   transactionId: string;
   items: CartItem[];
   total: number;
+  orderDate: Date;
 }
 
 export default function CheckoutClient() {
@@ -47,7 +49,7 @@ export default function CheckoutClient() {
         const canvas = await html2canvas(billElement, {
             scale: 2, 
             useCORS: true, 
-            backgroundColor: document.documentElement.classList.contains('dark') ? '#0f172a' : '#ffffff'
+            backgroundColor: document.documentElement.classList.contains('dark') ? '#0a0a0a' : '#ffffff' // Adjusted background for better PDF
         });
         const imgData = canvas.toDataURL('image/png');
         
@@ -58,7 +60,7 @@ export default function CheckoutClient() {
         });
         
         pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
-        pdf.save(`Shohure-Invoice-${completedOrder?.transactionId}.pdf`);
+        pdf.save(`Shohure-Receipt-${completedOrder?.transactionId}.pdf`);
 
     } catch (error) {
         console.error("Error generating PDF:", error);
@@ -90,14 +92,13 @@ export default function CheckoutClient() {
     console.log("Processing payment for:", user || guestDetails);
     console.log("Order details:", cart);
 
-    // Generate unique transaction ID
-    const transactionId = `SHR-${Date.now()}-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+    const transactionId = `TRX-${Date.now()}`;
     
-    // Save order details before clearing cart
     setCompletedOrder({
       transactionId,
       items: [...cart],
       total: subtotal,
+      orderDate: new Date(),
     });
     
     clearCart();
@@ -175,93 +176,65 @@ export default function CheckoutClient() {
   );
   
   const renderSuccessStep = () => (
-      <div className="max-w-4xl mx-auto animate-fade-in space-y-6">
+      <div className="max-w-md mx-auto animate-fade-in space-y-6">
         <div className="text-center">
             <CheckCircle className="mx-auto h-16 w-16 text-green-500" />
             <h2 className="mt-4 text-3xl font-bold">Thank You For Your Order!</h2>
             <p className="text-muted-foreground mt-2">
-                Your purchase was successful. You can download your invoice below.
+                Your purchase was successful. You can download your receipt below.
             </p>
         </div>
         
-        <div ref={billRef} className="p-8 border rounded-lg bg-card text-card-foreground shadow-sm">
-            <div className="flex justify-between items-start pb-6 border-b mb-6">
-                <div>
-                    <h3 className="text-xl font-bold font-headline tracking-wider text-primary">INVOICE</h3>
-                    <p className="text-muted-foreground text-sm">Order #{completedOrder?.transactionId}</p>
-                    <p className="text-muted-foreground text-sm">Date: {new Date().toLocaleDateString()}</p>
-                </div>
-                 <div className="text-right">
-                    <Logo />
-                    <p className="text-sm">Shohure /শহুরে</p>
-                    <p className="text-xs text-muted-foreground">Modern E-commerce</p>
-                </div>
+        <div ref={billRef} className="p-8 border rounded-2xl bg-card text-card-foreground shadow-lg font-mono">
+            <div className="text-center space-y-2 mb-8">
+                <h3 className="text-2xl font-bold text-blue-500 tracking-widest">RECEIPT</h3>
+                <p className="font-semibold text-orange-500">Bill ID: {completedOrder?.transactionId}</p>
+                <p className="text-sm text-muted-foreground">
+                    {completedOrder?.orderDate ? format(completedOrder.orderDate, 'MM/dd/yyyy, h:mm:ss a') : ''}
+                </p>
             </div>
 
-            <div className="grid sm:grid-cols-2 gap-6 mb-8">
-                <div>
-                    <h4 className="font-semibold mb-2">Billed To:</h4>
-                    <address className="not-italic text-sm text-muted-foreground">
-                        {user ? user.displayName : guestDetails.name}<br />
-                        {user ? user.email : guestDetails.email}<br/>
-                        {guestDetails.phone && <>{guestDetails.phone}<br/></>}
-                        {guestDetails.address}
-                    </address>
-                </div>
-                <div className="sm:text-right">
-                    <h4 className="font-semibold mb-2">Payment Details:</h4>
-                    <p className="text-sm text-muted-foreground">
-                        Payment Method: Demo Payment<br />
-                        Status: <span className="text-green-500 font-semibold">Paid</span>
-                    </p>
-                </div>
-            </div>
-            
-            <div className="space-y-4">
-                 <div className="grid grid-cols-5 gap-4 font-semibold text-sm border-b pb-2">
-                    <div className="col-span-2">Item</div>
-                    <div className="text-right">Price</div>
-                    <div className="text-right">Quantity</div>
-                    <div className="text-right">Total</div>
+            <div className="space-y-4 border-t-2 border-dashed pt-6">
+                <div className="grid grid-cols-12 gap-2 font-bold text-blue-500">
+                    <div className="col-span-6">Item</div>
+                    <div className="col-span-3 text-center">Qty</div>
+                    <div className="col-span-3 text-right">Total</div>
                 </div>
 
                 {completedOrder?.items.map(item => {
-                        const itemPrice = item.product.price + (item.selectedVariant?.priceModifier || 0);
-                        return (
-                        <div key={item.id} className="grid grid-cols-5 gap-4 text-sm items-center py-2 border-b border-dashed">
-                            <div className="col-span-2">
-                                <p className="font-medium">{item.product.name}</p>
-                                <div className="text-xs text-muted-foreground">
-                                    {item.selectedColor && <span>{item.selectedColor.color} </span>}
-                                    {item.selectedSize && <span>/ {item.selectedSize} </span>}
-                                    {item.selectedVariant && <span>/ {item.selectedVariant.name}</span>}
-                                </div>
+                    const itemPrice = item.product.price + (item.selectedVariant?.priceModifier || 0);
+                    return (
+                        <div key={item.id} className="grid grid-cols-12 gap-2 items-center">
+                            <div className="col-span-6">
+                                <p className="font-medium truncate">{item.product.name}</p>
                             </div>
-                            <span className="font-medium text-right">${itemPrice.toFixed(2)}</span>
-                            <span className="font-medium text-right">{item.quantity}</span>
+                            <span className="font-medium text-center">{item.quantity}</span>
                             <span className="font-medium text-right">${(itemPrice * item.quantity).toFixed(2)}</span>
                         </div>
-                        )
+                    )
                 })}
             </div>
-
-             <div className="flex justify-end mt-6">
-                <div className="w-full max-w-xs space-y-2">
-                    <div className="flex justify-between font-bold text-lg">
-                        <span>Total Paid</span>
-                        <span>${completedOrder?.total.toFixed(2)}</span>
-                    </div>
+            
+            <div className="space-y-2 border-t-2 border-dashed mt-6 pt-6">
+                 <div className="flex justify-between font-medium">
+                    <span>Subtotal</span>
+                    <span>${completedOrder?.total.toFixed(2)}</span>
+                </div>
+                 <div className="flex justify-between font-bold text-blue-500 text-lg">
+                    <span>Total</span>
+                    <span>${completedOrder?.total.toFixed(2)}</span>
                 </div>
             </div>
 
-            <div className="text-center mt-8 text-xs text-muted-foreground">
-                <p>Thank you for your business!</p>
+
+            <div className="text-center mt-8 text-lg font-semibold text-orange-500">
+                <p>Thank You!</p>
             </div>
         </div>
 
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button onClick={handleDownloadBill}>
-                <Download className="mr-2 h-4 w-4" /> Download Bill (PDF)
+                <Download className="mr-2 h-4 w-4" /> Download Receipt
             </Button>
             <Button asChild variant="outline">
                 <Link href="/">
@@ -330,3 +303,5 @@ export default function CheckoutClient() {
     </div>
   );
 }
+
+    
