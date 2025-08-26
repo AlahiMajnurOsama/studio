@@ -167,7 +167,7 @@ export default function CheckoutClient() {
                 <CardTitle>Confirm Your Order</CardTitle>
             </CardHeader>
             <CardContent>
-                <p>Please review your order and press the button below to complete your purchase using our demo payment system. An AI fraud check will be performed.</p>
+                <p>Please review your order and press the button below to complete your purchase using our demo payment system.</p>
             </CardContent>
             <CardFooter>
                 <Button className="w-full" size="lg" onClick={handleDemoPayment} disabled={isPending}>

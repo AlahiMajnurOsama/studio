@@ -42,12 +42,22 @@ export async function createOrder(guestDetails: GuestDetails, cart: CartItem[], 
 
     // 2. Save the order to Firestore
     const docRef = await addDoc(collection(db, 'orders'), orderData);
+    
+    // 3. Revalidate the path to refresh the data on the admin panel
+    revalidatePath('/admin/orders');
 
-    // 3. Return the new order ID and the full order data
+    // 4. Return the new order ID and the full order data
+    const newOrder = { 
+        ...orderData, 
+        id: docRef.id, 
+        // Convert Timestamp to a plain Date object for client-side state
+        orderDate: orderData.orderDate.toDate() 
+    };
+
     return {
         success: true,
         orderId: docRef.id,
-        order: { ...orderData, id: docRef.id, orderDate: new Date() } // Return with JS Date object
+        order: newOrder
     };
 
   } catch (error) {
