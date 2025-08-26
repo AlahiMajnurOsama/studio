@@ -1,7 +1,6 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
-import type { Product } from '@/lib/types';
 import { useToast } from './use-toast';
 
 interface WishlistContextType {
@@ -18,7 +17,9 @@ const WISHLIST_STORAGE_KEY = 'chromashop_wishlist';
 export const WishlistProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [wishlist, setWishlist] = useState<string[]>([]);
   const { toast } = useToast();
+  const [lastAction, setLastAction] = useState<{ type: 'add' | 'remove'; productId: string } | null>(null);
 
+  // Load wishlist from localStorage on initial render
   useEffect(() => {
     try {
       const storedWishlist = localStorage.getItem(WISHLIST_STORAGE_KEY);
@@ -30,37 +31,46 @@ export const WishlistProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }
   }, []);
 
-  const updateLocalStorage = (updatedWishlist: string[]) => {
+  // Persist wishlist to localStorage whenever it changes
+  useEffect(() => {
     try {
-      localStorage.setItem(WISHLIST_STORAGE_KEY, JSON.stringify(updatedWishlist));
+      localStorage.setItem(WISHLIST_STORAGE_KEY, JSON.stringify(wishlist));
     } catch (error) {
       console.error("Failed to save wishlist to localStorage", error);
     }
-  };
+  }, [wishlist]);
+  
+  // Show toast notifications after the state has been updated
+  useEffect(() => {
+    if (lastAction) {
+      if (lastAction.type === 'add') {
+         toast({
+          title: "Added to Wishlist!",
+          description: "You've got great taste.",
+        });
+      } else if (lastAction.type === 'remove') {
+         toast({
+          title: "Removed from Wishlist",
+        });
+      }
+      setLastAction(null); // Reset the action
+    }
+  }, [lastAction, toast]);
+
 
   const addToWishlist = useCallback((productId: string) => {
-    setWishlist((prev) => {
-      if (prev.includes(productId)) return prev;
-      const updatedWishlist = [...prev, productId];
-      updateLocalStorage(updatedWishlist);
-      toast({
-        title: "Added to Wishlist!",
-        description: "You've got great taste.",
-      });
-      return updatedWishlist;
-    });
-  }, [toast]);
+    if (!wishlist.includes(productId)) {
+      setWishlist(prev => [...prev, productId]);
+      setLastAction({ type: 'add', productId });
+    }
+  }, [wishlist]);
 
   const removeFromWishlist = useCallback((productId: string) => {
-    setWishlist((prev) => {
-      const updatedWishlist = prev.filter((id) => id !== productId);
-      updateLocalStorage(updatedWishlist);
-       toast({
-        title: "Removed from Wishlist",
-      });
-      return updatedWishlist;
-    });
-  }, [toast]);
+    if (wishlist.includes(productId)) {
+      setWishlist(prev => prev.filter(id => id !== productId));
+      setLastAction({ type: 'remove', productId });
+    }
+  }, [wishlist]);
 
   const isInWishlist = useCallback((productId: string) => {
     return wishlist.includes(productId);
