@@ -10,7 +10,8 @@
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
-    "upload-products": "tsx scripts/uploadProducts.ts"
+    "upload-products": "tsx scripts/uploadProducts.ts",
+    "upload-orders": "tsx scripts/uploadOrders.ts"
   },
   "dependencies": {
     "@genkit-ai/googleai": "^1.14.1",

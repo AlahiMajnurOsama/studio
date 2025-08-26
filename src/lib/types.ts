@@ -1,3 +1,5 @@
+import type { Timestamp } from "firebase/firestore";
+
 export type ProductVariant = {
   name: string;
   priceModifier?: number;
@@ -10,7 +12,7 @@ export type ColorVariant = {
 
 export type Product = {
   id: string;
-  name: string;
+  name:string;
   description: string;
   price: number;
   image: string; // Main/default image
@@ -28,4 +30,25 @@ export type CartItem = {
   selectedColor?: ColorVariant | null;
   selectedSize?: string | null;
   selectedVariant?: ProductVariant | null;
+};
+
+export type Order = {
+  id: string;
+  orderDate: Timestamp | Date;
+  customer: {
+    name: string;
+    email: string;
+    phone: string;
+    ipAddress: string;
+    location: string;
+  };
+  items: CartItem[];
+  total: number;
+  status: 'Pending' | 'Completed' | 'Failed';
+  paymentMethod: string;
+  aiAnalysis: {
+    riskScore: number;
+    summary: string;
+    keyFactors: string[];
+  };
 };
