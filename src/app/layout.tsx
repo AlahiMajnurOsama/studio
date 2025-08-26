@@ -5,6 +5,7 @@ import { WishlistProvider } from '@/hooks/useWishlist';
 import Header from '@/components/Header';
 import { AppProvider } from '@/context/AppContext';
 import PageLoader from '@/components/PageLoader';
+import { AuthProvider } from '@/hooks/useAuth';
 
 export const metadata: Metadata = {
   title: 'Poshra',
@@ -32,11 +33,13 @@ export default function RootLayout({
       </head>
       <body className="font-body antialiased min-h-screen flex flex-col">
         <AppProvider>
-          <WishlistProvider>
-            <Header />
-            <main className="flex-grow pt-20">{children}</main>
-            <PageLoader />
-          </WishlistProvider>
+          <AuthProvider>
+            <WishlistProvider>
+              <Header />
+              <main className="flex-grow pt-20">{children}</main>
+              <PageLoader />
+            </WishlistProvider>
+          </AuthProvider>
         </AppProvider>
         <Toaster />
       </body>
