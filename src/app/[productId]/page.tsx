@@ -20,36 +20,42 @@ export default function ProductDetailsPage({
     .slice(0, 4);
 
   return (
-    <div className="container mx-auto px-4 py-12 animate-fade-in">
-      <div className="grid md:grid-cols-2 gap-12 items-start">
-        <div className="bg-card rounded-xl overflow-hidden shadow-2xl group relative transition-all duration-500 hover:shadow-primary/20">
-           <Image
-            src={product.image}
-            alt={product.name}
-            width={800}
-            height={600}
-            className="w-full h-auto object-cover transition-transform duration-500 group-hover:scale-105"
-            data-ai-hint={`${product.category} product`}
-          />
-           <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+    <div className="min-h-screen bg-background text-foreground">
+      <div className="container mx-auto px-4 py-12 animate-fade-in relative overflow-hidden">
+        <div className="absolute top-0 left-0 w-full h-full opacity-10">
+            <div className="absolute w-[50vw] h-[50vw] rounded-full bg-primary/30 -translate-x-1/2 -translate-y-1/2 blur-3xl"></div>
+            <div className="absolute w-[40vw] h-[40vw] rounded-full bg-red-500/30 top-full left-full -translate-x-1/2 -translate-y-1/2 blur-3xl"></div>
+        </div>
+        <div className="grid lg:grid-cols-2 gap-12 items-center relative z-10">
+          <div className="w-full h-full flex items-center justify-center">
+            <div className="relative w-[80%] aspect-square group transition-transform duration-500 hover:scale-105">
+              <Image
+                  src={product.image}
+                  alt={product.name}
+                  fill
+                  className="object-contain drop-shadow-[0_25px_25px_rgba(0,0,0,0.5)]"
+                  data-ai-hint={`${product.category} product`}
+                />
+            </div>
+          </div>
+          
+          <ProductDetailsClient product={product} />
+
         </div>
         
-        <ProductDetailsClient product={product} />
-
-      </div>
-      
-      {relatedProducts.length > 0 && (
-        <div className="mt-24 pt-12 border-t">
-          <h2 className="text-3xl font-bold text-center mb-10 font-headline">
-            You Might Also Like
-          </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-            {relatedProducts.map((relatedProduct) => (
-              <ProductCard key={relatedProduct.id} product={relatedProduct} />
-            ))}
+        {relatedProducts.length > 0 && (
+          <div className="mt-24 pt-12 border-t border-white/10">
+            <h2 className="text-3xl font-bold text-center mb-10 font-headline">
+              You Might Also Like
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+              {relatedProducts.map((relatedProduct) => (
+                <ProductCard key={relatedProduct.id} product={relatedProduct} />
+              ))}
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }

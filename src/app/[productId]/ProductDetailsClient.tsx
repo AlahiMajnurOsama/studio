@@ -4,9 +4,8 @@ import { useEffect, useState, useMemo } from "react";
 import type { Product, ProductVariant } from "@/lib/types";
 import { useWishlist } from "@/hooks/useWishlist";
 import { Button } from "@/components/ui/button";
-import { Heart, ShoppingBag, Check } from "lucide-react";
+import { Heart, ShoppingBag, Check, Star } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Separator } from "@/components/ui/separator";
 
 const BROWSING_HISTORY_KEY = "chromashop_browsing_history";
 const MAX_HISTORY_LENGTH = 10;
@@ -19,10 +18,10 @@ const VariationSelector = ({
   children: React.ReactNode;
 }) => (
   <div>
-    <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
+    <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-3">
       {label}
     </h3>
-    <div className="flex flex-wrap items-center gap-2 mt-2">{children}</div>
+    <div className="flex flex-wrap items-center gap-3">{children}</div>
   </div>
 );
 
@@ -71,23 +70,31 @@ export default function ProductDetailsClient({ product }: { product: Product }) 
   }, [product.price, selectedVariant]);
 
   return (
-    <div className="flex flex-col h-full space-y-8">
-      <div className="space-y-4 text-center md:text-left">
-        <p className="text-primary font-semibold tracking-wider uppercase">
+    <div className="flex flex-col h-full space-y-6 relative">
+       <div className="absolute -z-10 top-0 left-0 w-full h-full text-[12rem] font-black text-white/5 leading-none select-none break-all opacity-50">
+        {product.name.toUpperCase().split(' ').join('')}
+      </div>
+
+      <div className="space-y-4">
+         <p className="text-primary font-semibold tracking-widest uppercase text-sm">
           {product.category}
         </p>
-        <h1 className="text-4xl md:text-5xl font-bold font-headline tracking-tighter bg-clip-text text-transparent bg-gradient-to-r from-foreground to-muted-foreground">
+        <h1 className="text-5xl md:text-6xl font-black font-headline tracking-tighter text-transparent bg-clip-text bg-gradient-to-br from-white to-neutral-400">
           {product.name}
         </h1>
-        <p className="text-3xl font-semibold text-primary">
-          ${finalPrice.toFixed(2)}
-        </p>
-        <p className="text-muted-foreground text-lg leading-relaxed pt-4">
+        <div className="flex items-center gap-4">
+            <p className="text-4xl font-bold text-primary">${finalPrice.toFixed(2)}</p>
+            <div className="flex items-center gap-1">
+                {[...Array(5)].map((_, i) => (
+                    <Star key={i} className={`w-5 h-5 ${i < 4 ? 'text-yellow-400 fill-yellow-400' : 'text-neutral-600'}`} />
+                ))}
+                <span className="text-sm text-muted-foreground ml-2">(128 reviews)</span>
+            </div>
+        </div>
+        <p className="text-neutral-300 text-lg leading-relaxed pt-4 max-w-prose">
           {product.description}
         </p>
       </div>
-
-      <Separator />
 
       <div className="space-y-6">
         {product.colors && product.colors.length > 0 && (
@@ -97,17 +104,14 @@ export default function ProductDetailsClient({ product }: { product: Product }) 
                 key={color}
                 onClick={() => setSelectedColor(color)}
                 className={cn(
-                  "h-8 w-8 rounded-full border-2 transition-transform duration-200 active:scale-90",
+                  "h-10 w-10 rounded-full border-2 transition-transform duration-200 active:scale-90",
                   selectedColor === color
-                    ? "border-primary scale-110 shadow-lg"
-                    : "border-border hover:scale-110"
+                    ? "border-primary scale-110 shadow-lg shadow-primary/20"
+                    : "border-neutral-700 hover:scale-110 hover:border-primary/50"
                 )}
                 style={{ backgroundColor: color }}
                 aria-label={`Select color ${color}`}
               >
-                {selectedColor === color && (
-                  <Check className="h-5 w-5 text-white mix-blend-difference" />
-                )}
               </button>
             ))}
           </VariationSelector>
@@ -120,10 +124,10 @@ export default function ProductDetailsClient({ product }: { product: Product }) 
                 key={size}
                 onClick={() => setSelectedSize(size)}
                 className={cn(
-                  "px-4 py-2 rounded-md border text-sm font-medium transition-all duration-200 active:scale-95",
+                  "px-4 py-2 rounded-md border text-sm font-bold transition-all duration-200 active:scale-95",
                   selectedSize === size
-                    ? "bg-primary text-primary-foreground border-transparent shadow-md"
-                    : "bg-transparent hover:border-primary"
+                    ? "bg-primary text-primary-foreground border-transparent shadow-lg shadow-primary/30"
+                    : "bg-neutral-800 border-neutral-700 hover:border-primary hover:bg-neutral-700"
                 )}
               >
                 {size}
@@ -139,10 +143,10 @@ export default function ProductDetailsClient({ product }: { product: Product }) 
                 key={variant.name}
                 onClick={() => setSelectedVariant(variant)}
                 className={cn(
-                  "px-4 py-2 rounded-md border text-sm font-medium transition-all duration-200 active:scale-95",
+                  "px-4 py-2 rounded-md border text-sm font-bold transition-all duration-200 active:scale-95",
                   selectedVariant?.name === variant.name
-                    ? "bg-primary text-primary-foreground border-transparent shadow-md"
-                    : "bg-transparent hover:border-primary"
+                     ? "bg-primary text-primary-foreground border-transparent shadow-lg shadow-primary/30"
+                    : "bg-neutral-800 border-neutral-700 hover:border-primary hover:bg-neutral-700"
                 )}
               >
                 {variant.name}
@@ -158,20 +162,20 @@ export default function ProductDetailsClient({ product }: { product: Product }) 
       <div className="flex flex-col sm:flex-row gap-4 pt-4">
         <Button
           size="lg"
-          className="flex-1 font-bold text-lg transition-all duration-300 active:scale-95 hover:shadow-lg hover:shadow-primary/30 hover:-translate-y-1"
+          className="flex-1 font-bold text-lg transition-all duration-300 active:scale-95 hover:shadow-lg hover:shadow-primary/30 hover:-translate-y-1 bg-gradient-to-br from-primary to-red-500 text-white"
         >
           <ShoppingBag className="mr-2 h-5 w-5" /> Add to Bag
         </Button>
         <Button
           size="lg"
           variant="outline"
-          className="flex-1 font-bold text-lg transition-all duration-300 active:scale-95 hover:shadow-lg hover:border-primary group"
+          className="flex-1 font-bold text-lg transition-all duration-300 active:scale-95 hover:shadow-lg group bg-neutral-800/50 border-neutral-700 hover:bg-neutral-700 hover:border-primary"
           onClick={handleWishlistToggle}
         >
           <Heart
             className={cn(
               "mr-2 h-5 w-5 transition-all group-hover:fill-red-500 group-hover:text-red-500",
-              isWishlisted && "fill-red-500 text-red-500"
+              isWishlisted ? "fill-red-500 text-red-500" : "text-neutral-400"
             )}
           />
           {isWishlisted ? "In Wishlist" : "Add to Wishlist"}
