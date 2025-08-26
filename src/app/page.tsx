@@ -1,10 +1,9 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useMemo } from "react";
 import type { Product } from "@/lib/types";
 import { products } from "@/lib/data";
 import ProductCard from "@/components/ProductCard";
-import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -14,7 +13,7 @@ import {
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
-import { Search, X, ChevronRight } from "lucide-react";
+import { X, ChevronRight } from "lucide-react";
 import ProductRecommendations from "@/components/ProductRecommendations";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
@@ -26,14 +25,20 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
+import { useAppContext } from "@/context/AppContext";
 
 const allCategories = Array.from(new Set(products.map((p) => p.category)));
 
 export default function Home() {
-  const [search, setSearch] = useState("");
-  const [sort, setSort] = useState("popularity-desc");
-  const [priceRange, setPriceRange] = useState([0, 1000]);
-  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const {
+    search,
+    sort,
+    priceRange,
+    setPriceRange,
+    selectedCategories,
+    toggleCategory,
+    clearFilters,
+  } = useAppContext();
 
   const filteredProducts = useMemo(() => {
     return products
@@ -50,9 +55,7 @@ export default function Home() {
           selectedCategories.includes(product.category);
 
         return (
-          (nameMatch || descriptionMatch) &&
-          priceMatch &&
-          categoryMatch
+          (nameMatch || descriptionMatch) && priceMatch && categoryMatch
         );
       })
       .sort((a, b) => {
@@ -68,20 +71,6 @@ export default function Home() {
         }
       });
   }, [search, sort, priceRange, selectedCategories]);
-
-  const toggleCategory = (category: string) => {
-    setSelectedCategories((prev) =>
-      prev.includes(category)
-        ? prev.filter((c) => c !== category)
-        : [...prev, category]
-    );
-  };
-
-  const clearFilters = () => {
-    setPriceRange([0, 1000]);
-    setSelectedCategories([]);
-    setSearch("");
-  };
 
   const heroBanners = [
     {
@@ -149,7 +138,10 @@ export default function Home() {
       <section className="mb-12">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-2xl font-bold font-headline">Shop by Category</h2>
-          <Link href="#all-products" className="text-sm font-medium text-primary hover:underline flex items-center gap-1">
+          <Link
+            href="#all-products"
+            className="text-sm font-medium text-primary hover:underline flex items-center gap-1"
+          >
             View All <ChevronRight className="h-4 w-4" />
           </Link>
         </div>
@@ -174,20 +166,11 @@ export default function Home() {
         <aside className="w-full md:w-1/4 lg:w-1/5">
           <div className="sticky top-24 space-y-6">
             <h2 className="text-2xl font-headline font-bold">Filters</h2>
-            
-            <div className="relative w-full">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-              <Input
-                type="text"
-                placeholder="Search products..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="pl-10"
-              />
-            </div>
 
             <div>
-              <Label htmlFor="price-range" className="font-medium">Price Range</Label>
+              <Label htmlFor="price-range" className="font-medium">
+                Price Range
+              </Label>
               <div className="flex items-center justify-between text-sm mt-2">
                 <span>${priceRange[0]}</span>
                 <span>${priceRange[1]}</span>
@@ -202,8 +185,12 @@ export default function Home() {
                 className="mt-2"
               />
             </div>
-            
-            <Button variant="ghost" onClick={clearFilters} className="w-full justify-start">
+
+            <Button
+              variant="ghost"
+              onClick={clearFilters}
+              className="w-full justify-start"
+            >
               <X className="mr-2 h-4 w-4" /> Clear All Filters
             </Button>
           </div>
@@ -214,18 +201,6 @@ export default function Home() {
             <p className="text-sm text-muted-foreground">
               Showing {filteredProducts.length} of {products.length} products
             </p>
-            <div className="w-full sm:w-auto">
-              <Select value={sort} onValueChange={setSort}>
-                <SelectTrigger className="w-full sm:w-[180px]">
-                  <SelectValue placeholder="Sort by" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="popularity-desc">Popularity</SelectItem>
-                  <SelectItem value="price-asc">Price: Low to High</SelectItem>
-                  <SelectItem value="price-desc">Price: High to Low</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -234,9 +209,11 @@ export default function Home() {
             ))}
           </div>
           {filteredProducts.length === 0 && (
-             <div className="text-center py-12 col-span-full">
-               <p className="text-muted-foreground">No products found. Try adjusting your filters!</p>
-             </div>
+            <div className="text-center py-12 col-span-full">
+              <p className="text-muted-foreground">
+                No products found. Try adjusting your filters!
+              </p>
+            </div>
           )}
         </main>
       </div>
