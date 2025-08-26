@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useCart } from "@/hooks/useCart";
 import { useAuth } from "@/hooks/useAuth";
 import type { CartItem } from "@/lib/types";
@@ -10,8 +10,12 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import Image from "next/image";
-import { CheckCircle, ShoppingBag, FileText } from "lucide-react";
+import { CheckCircle, ShoppingBag, FileText, Download, Printer } from "lucide-react";
 import Link from "next/link";
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
+import Logo from "@/components/icons/Logo";
+
 
 type CheckoutStep = "initial" | "guest_form" | "payment" | "success";
 
@@ -24,6 +28,7 @@ interface CompletedOrder {
 export default function CheckoutClient() {
   const { cart, subtotal, totalItems, clearCart } = useCart();
   const { user, signInWithGoogle } = useAuth();
+  const billRef = useRef<HTMLDivElement>(null);
 
   const [step, setStep] = useState<CheckoutStep>("initial");
   const [completedOrder, setCompletedOrder] = useState<CompletedOrder | null>(null);
@@ -33,6 +38,33 @@ export default function CheckoutClient() {
     phone: "",
     address: "",
   });
+
+  const handleDownloadBill = async () => {
+    const billElement = billRef.current;
+    if (!billElement) return;
+
+    try {
+        const canvas = await html2canvas(billElement, {
+            scale: 2, 
+            useCORS: true, 
+            backgroundColor: document.documentElement.classList.contains('dark') ? '#0f172a' : '#ffffff'
+        });
+        const imgData = canvas.toDataURL('image/png');
+        
+        const pdf = new jsPDF({
+            orientation: 'portrait',
+            unit: 'px',
+            format: [canvas.width, canvas.height]
+        });
+        
+        pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
+        pdf.save(`Shohure-Invoice-${completedOrder?.transactionId}.pdf`);
+
+    } catch (error) {
+        console.error("Error generating PDF:", error);
+    }
+  };
+
 
   if (cart.length === 0 && step !== "success") {
     return (
@@ -59,7 +91,7 @@ export default function CheckoutClient() {
     console.log("Order details:", cart);
 
     // Generate unique transaction ID
-    const transactionId = `POSHRA-${Date.now()}-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+    const transactionId = `SHR-${Date.now()}-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
     
     // Save order details before clearing cart
     setCompletedOrder({
@@ -143,61 +175,102 @@ export default function CheckoutClient() {
   );
   
   const renderSuccessStep = () => (
-      <div className="max-w-2xl mx-auto animate-fade-in">
-        <Card>
-            <CardHeader className="text-center p-8 bg-muted/50">
-                <CheckCircle className="mx-auto h-16 w-16 text-green-500" />
-                <h2 className="mt-4 text-3xl font-bold">Thank You For Your Order!</h2>
-                <p className="text-muted-foreground mt-2">
-                    Your purchase was successful. A confirmation has been sent to your email.
-                </p>
-            </CardHeader>
-            <CardContent className="p-8">
-                <div className="space-y-4">
-                    <div className="flex justify-between items-center text-sm">
-                        <span className="font-medium text-muted-foreground">Transaction ID</span>
-                        <span className="font-mono text-xs">{completedOrder?.transactionId}</span>
-                    </div>
-                     <div className="flex justify-between items-center text-sm">
-                        <span className="font-medium text-muted-foreground">Order Date</span>
-                        <span className="font-medium">{new Date().toLocaleDateString()}</span>
-                    </div>
+      <div className="max-w-4xl mx-auto animate-fade-in space-y-6">
+        <div className="text-center">
+            <CheckCircle className="mx-auto h-16 w-16 text-green-500" />
+            <h2 className="mt-4 text-3xl font-bold">Thank You For Your Order!</h2>
+            <p className="text-muted-foreground mt-2">
+                Your purchase was successful. You can download your invoice below.
+            </p>
+        </div>
+        
+        <div ref={billRef} className="p-8 border rounded-lg bg-card text-card-foreground shadow-sm">
+            <div className="flex justify-between items-start pb-6 border-b mb-6">
+                <div>
+                    <h3 className="text-xl font-bold font-headline">Invoice</h3>
+                    <p className="text-muted-foreground text-sm">Order #{completedOrder?.transactionId}</p>
+                    <p className="text-muted-foreground text-sm">Date: {new Date().toLocaleDateString()}</p>
                 </div>
-                <Separator className="my-6" />
-                <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                    <FileText className="h-5 w-5" />
-                    Order Summary
-                </h3>
-                <div className="space-y-4">
-                    {completedOrder?.items.map(item => {
-                         const itemPrice = item.product.price + (item.selectedVariant?.priceModifier || 0);
-                         return (
-                            <div key={item.id} className="flex justify-between items-center text-sm">
-                                <div>
-                                    <p className="font-medium">{item.product.name} <span className="text-muted-foreground">x{item.quantity}</span></p>
-                                    <div className="text-xs text-muted-foreground">
-                                        {item.selectedColor && <span>{item.selectedColor.color} </span>}
-                                        {item.selectedSize && <span>/ {item.selectedSize} </span>}
-                                        {item.selectedVariant && <span>/ {item.selectedVariant.name}</span>}
-                                    </div>
+                 <div className="text-right">
+                    <Logo />
+                    <p className="text-sm">Shohure /শহুরে</p>
+                    <p className="text-xs text-muted-foreground">Modern E-commerce</p>
+                </div>
+            </div>
+
+            <div className="grid sm:grid-cols-2 gap-6 mb-8">
+                <div>
+                    <h4 className="font-semibold mb-2">Billed To:</h4>
+                    <address className="not-italic text-sm text-muted-foreground">
+                        {user ? user.displayName : guestDetails.name}<br />
+                        {user ? user.email : guestDetails.email}<br/>
+                        {guestDetails.phone}<br/>
+                        {guestDetails.address}
+                    </address>
+                </div>
+                <div className="sm:text-right">
+                    <h4 className="font-semibold mb-2">Payment Details:</h4>
+                    <p className="text-sm text-muted-foreground">
+                        Payment Method: Demo Payment<br />
+                        Status: <span className="text-green-500 font-semibold">Paid</span>
+                    </p>
+                </div>
+            </div>
+            
+            <div className="space-y-4">
+                 <div className="grid grid-cols-5 gap-4 font-semibold text-sm border-b pb-2">
+                    <div className="col-span-2">Item</div>
+                    <div className="text-right">Price</div>
+                    <div className="text-right">Quantity</div>
+                    <div className="text-right">Total</div>
+                </div>
+
+                {completedOrder?.items.map(item => {
+                        const itemPrice = item.product.price + (item.selectedVariant?.priceModifier || 0);
+                        return (
+                        <div key={item.id} className="grid grid-cols-5 gap-4 text-sm items-center">
+                            <div className="col-span-2">
+                                <p className="font-medium">{item.product.name}</p>
+                                <div className="text-xs text-muted-foreground">
+                                    {item.selectedColor && <span>{item.selectedColor.color} </span>}
+                                    {item.selectedSize && <span>/ {item.selectedSize} </span>}
+                                    {item.selectedVariant && <span>/ {item.selectedVariant.name}</span>}
                                 </div>
-                                <span className="font-medium">${(itemPrice * item.quantity).toFixed(2)}</span>
                             </div>
-                         )
-                    })}
+                            <span className="font-medium text-right">${itemPrice.toFixed(2)}</span>
+                            <span className="font-medium text-right">{item.quantity}</span>
+                            <span className="font-medium text-right">${(itemPrice * item.quantity).toFixed(2)}</span>
+                        </div>
+                        )
+                })}
+            </div>
+
+            <Separator className="my-6" />
+
+             <div className="flex justify-end">
+                <div className="w-full max-w-xs space-y-2">
+                    <div className="flex justify-between font-bold text-lg">
+                        <span>Total Paid</span>
+                        <span>${completedOrder?.total.toFixed(2)}</span>
+                    </div>
                 </div>
-                <Separator className="my-6" />
-                <div className="flex justify-between font-bold text-xl">
-                    <span>Total Paid</span>
-                    <span>${completedOrder?.total.toFixed(2)}</span>
-                </div>
-            </CardContent>
-            <CardFooter>
-                <Button asChild className="w-full">
-                    <Link href="/">Continue Shopping</Link>
-                </Button>
-            </CardFooter>
-        </Card>
+            </div>
+
+            <div className="text-center mt-8 text-xs text-muted-foreground">
+                <p>Thank you for your business!</p>
+            </div>
+        </div>
+
+        <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Button onClick={handleDownloadBill}>
+                <Download className="mr-2 h-4 w-4" /> Download Bill (PDF)
+            </Button>
+            <Button asChild variant="outline">
+                <Link href="/">
+                    <ShoppingBag className="mr-2 h-4 w-4" /> Continue Shopping
+                </Link>
+            </Button>
+        </div>
       </div>
   );
 

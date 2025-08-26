@@ -9,7 +9,7 @@ import { AuthProvider } from '@/hooks/useAuth';
 import { CartProvider } from '@/hooks/useCart';
 
 export const metadata: Metadata = {
-  title: 'Poshra',
+  title: 'Shohure',
   description: 'A vibrant and modern e-commerce experience.',
 };
 

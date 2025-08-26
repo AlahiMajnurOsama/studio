@@ -23,17 +23,17 @@ const Logo = (props: SVGProps<SVGSVGElement>) => (
       fill="url(#logo-gradient)"
       letterSpacing="-1"
     >
-      Poshra
+      Shohure
     </text>
      <path 
-      d="M 125, 15 a 5,5 0 0,1 0,20 a 5,5 0 0,1 0,-20"
+      d="M 145, 15 a 5,5 0 0,1 0,20 a 5,5 0 0,1 0,-20"
       fill="hsl(var(--primary))"
     >
         <animateTransform 
             attributeName="transform" 
             type="rotate"
-            from="0 125 25"
-            to="360 125 25"
+            from="0 145 25"
+            to="360 145 25"
             dur="10s"
             repeatCount="indefinite"
         />
