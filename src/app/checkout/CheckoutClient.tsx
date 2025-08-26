@@ -187,7 +187,7 @@ export default function CheckoutClient() {
         <div ref={billRef} className="p-8 border rounded-lg bg-card text-card-foreground shadow-sm">
             <div className="flex justify-between items-start pb-6 border-b mb-6">
                 <div>
-                    <h3 className="text-xl font-bold font-headline">Invoice</h3>
+                    <h3 className="text-xl font-bold font-headline tracking-wider text-primary">INVOICE</h3>
                     <p className="text-muted-foreground text-sm">Order #{completedOrder?.transactionId}</p>
                     <p className="text-muted-foreground text-sm">Date: {new Date().toLocaleDateString()}</p>
                 </div>
@@ -204,7 +204,7 @@ export default function CheckoutClient() {
                     <address className="not-italic text-sm text-muted-foreground">
                         {user ? user.displayName : guestDetails.name}<br />
                         {user ? user.email : guestDetails.email}<br/>
-                        {guestDetails.phone}<br/>
+                        {guestDetails.phone && <>{guestDetails.phone}<br/></>}
                         {guestDetails.address}
                     </address>
                 </div>
@@ -228,7 +228,7 @@ export default function CheckoutClient() {
                 {completedOrder?.items.map(item => {
                         const itemPrice = item.product.price + (item.selectedVariant?.priceModifier || 0);
                         return (
-                        <div key={item.id} className="grid grid-cols-5 gap-4 text-sm items-center">
+                        <div key={item.id} className="grid grid-cols-5 gap-4 text-sm items-center py-2 border-b border-dashed">
                             <div className="col-span-2">
                                 <p className="font-medium">{item.product.name}</p>
                                 <div className="text-xs text-muted-foreground">
@@ -245,9 +245,7 @@ export default function CheckoutClient() {
                 })}
             </div>
 
-            <Separator className="my-6" />
-
-             <div className="flex justify-end">
+             <div className="flex justify-end mt-6">
                 <div className="w-full max-w-xs space-y-2">
                     <div className="flex justify-between font-bold text-lg">
                         <span>Total Paid</span>

@@ -25,19 +25,6 @@ const Logo = (props: SVGProps<SVGSVGElement>) => (
     >
       Shohure
     </text>
-     <path 
-      d="M 145, 15 a 5,5 0 0,1 0,20 a 5,5 0 0,1 0,-20"
-      fill="hsl(var(--primary))"
-    >
-        <animateTransform 
-            attributeName="transform" 
-            type="rotate"
-            from="0 145 25"
-            to="360 145 25"
-            dur="10s"
-            repeatCount="indefinite"
-        />
-    </path>
   </svg>
 );
 
