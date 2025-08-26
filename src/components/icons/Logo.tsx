@@ -22,7 +22,7 @@ const Logo = (props: SVGProps<SVGSVGElement>) => (
       fontWeight="bold"
       fill="url(#logo-gradient)"
     >
-      ChromaShop
+      Poshra
     </text>
   </svg>
 );

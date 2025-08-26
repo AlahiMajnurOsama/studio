@@ -5,7 +5,7 @@ import { WishlistProvider } from '@/hooks/useWishlist';
 import Header from '@/components/Header';
 
 export const metadata: Metadata = {
-  title: 'ChromaShop',
+  title: 'Poshra',
   description: 'A vibrant and modern e-commerce experience.',
 };
 
@@ -27,7 +27,7 @@ export default function RootLayout({
       <body className="font-body antialiased min-h-screen flex flex-col">
         <WishlistProvider>
           <Header />
-          <main className="flex-grow">{children}</main>
+          <main className="flex-grow pt-24">{children}</main>
         </WishlistProvider>
         <Toaster />
       </body>
