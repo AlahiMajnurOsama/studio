@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import Image from "next/image";
 import ProductDetailsClient from "./ProductDetailsClient";
 import ProductCard from "@/components/ProductCard";
+import Particles from "@/components/Particles";
 
 async function getProduct(productId: string): Promise<Product | null> {
   const docRef = doc(db, "products", productId);
@@ -46,8 +47,20 @@ export default async function ProductDetailsPage({
             <div className="absolute w-[40vw] h-[40vw] rounded-full bg-red-500/30 top-full left-full -translate-x-1/2 -translate-y-1/2 blur-3xl"></div>
         </div>
         <div className="grid lg:grid-cols-2 gap-12 items-center relative z-10">
-          <div className="w-full h-full flex items-center justify-center">
-            <div className="relative w-[80%] aspect-square group transition-transform duration-500 hover:scale-105">
+          <div className="relative w-full h-[60vh] flex items-center justify-center">
+             <div className="absolute inset-0 z-0">
+                <Particles
+                    particleColors={['#9D4EDD', '#5A86FF']}
+                    particleCount={200}
+                    particleSpread={10}
+                    speed={0.1}
+                    particleBaseSize={100}
+                    moveParticlesOnHover={true}
+                    alphaParticles={false}
+                    disableRotation={false}
+                />
+            </div>
+            <div className="relative w-[80%] aspect-square group transition-transform duration-500 hover:scale-105 z-10">
               <Image
                   src={product.image}
                   alt={product.name}
