@@ -6,6 +6,7 @@ import Header from '@/components/Header';
 import { AppProvider } from '@/context/AppContext';
 import PageLoader from '@/components/PageLoader';
 import { AuthProvider } from '@/hooks/useAuth';
+import { CartProvider } from '@/hooks/useCart';
 
 export const metadata: Metadata = {
   title: 'Poshra',
@@ -35,9 +36,11 @@ export default function RootLayout({
         <AppProvider>
           <AuthProvider>
             <WishlistProvider>
-              <Header />
-              <main className="flex-grow pt-20">{children}</main>
-              <PageLoader />
+              <CartProvider>
+                <Header />
+                <main className="flex-grow pt-20">{children}</main>
+                <PageLoader />
+              </CartProvider>
             </WishlistProvider>
           </AuthProvider>
         </AppProvider>

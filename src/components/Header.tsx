@@ -28,6 +28,9 @@ import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { usePathname, useRouter } from 'next/navigation';
 import PackageOpen from './icons/PackageOpen';
+import { useCart } from '@/hooks/useCart';
+import Cart from './Cart';
+
 
 const ThemeSwitcher = () => {
   const { theme, setTheme } = useAppContext();
@@ -205,6 +208,8 @@ const Header = () => {
   const router = useRouter();
   const pathname = usePathname();
   const [isPending, startTransition] = useTransition();
+  const { totalItems } = useCart();
+  const [isCartOpen, setIsCartOpen] = useState(false);
   
   useEffect(() => {
     setPageLoading(isPending);
@@ -219,6 +224,7 @@ const Header = () => {
   }, [pathname, router]);
 
   return (
+    <>
     <header className="fixed top-0 left-0 right-0 z-50 w-full bg-background/80 backdrop-blur-md">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-20">
@@ -231,7 +237,12 @@ const Header = () => {
 
           <div className="flex items-center gap-2">
             <ThemeSwitcher />
-            <Button variant="ghost" size="icon">
+            <Button variant="ghost" size="icon" className="relative" onClick={() => setIsCartOpen(true)}>
+                {totalItems > 0 && (
+                    <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
+                        {totalItems}
+                    </span>
+                )}
               <ShoppingBag />
               <span className="sr-only">Shopping Cart</span>
             </Button>
@@ -241,6 +252,8 @@ const Header = () => {
         {isMobile && !pathname.startsWith('/admin') && <div className="pb-4 px-4"><SearchBar /></div>}
       </div>
     </header>
+    <Cart isOpen={isCartOpen} onOpenChange={setIsCartOpen} />
+    </>
   );
 };
 

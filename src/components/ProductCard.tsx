@@ -8,6 +8,7 @@ import { Button } from "./ui/button";
 import { Heart, ShoppingBag } from "lucide-react";
 import { Card, CardContent, CardFooter, CardHeader } from "./ui/card";
 import { cn } from "@/lib/utils";
+import { useCart } from "@/hooks/useCart";
 
 interface ProductCardProps {
   product: Product;
@@ -15,6 +16,7 @@ interface ProductCardProps {
 
 const ProductCard = ({ product }: ProductCardProps) => {
   const { isInWishlist, addToWishlist, removeFromWishlist } = useWishlist();
+  const { addToCart } = useCart();
   const isWishlisted = isInWishlist(product.id);
 
   const handleWishlistToggle = (e: React.MouseEvent) => {
@@ -30,8 +32,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    // In a real app, you'd add logic here to add the item to the cart
-    console.log(`Added ${product.name} to cart`);
+    addToCart(product, 1);
   };
 
   return (

@@ -20,3 +20,12 @@ export type Product = {
   variants?: ProductVariant[];
   popularity: number; // 0-100
 };
+
+export type CartItem = {
+  id: string; // A unique ID for the cart item, e.g., `${product.id}-${color}-${size}`
+  product: Product;
+  quantity: number;
+  selectedColor?: ColorVariant | null;
+  selectedSize?: string | null;
+  selectedVariant?: ProductVariant | null;
+};

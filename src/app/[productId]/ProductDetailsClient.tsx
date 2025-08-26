@@ -8,6 +8,7 @@ import { Heart, ShoppingBag, Check, Star } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
 import Particles from "@/components/Particles";
+import { useCart } from "@/hooks/useCart";
 
 const BROWSING_HISTORY_KEY = "chromashop_browsing_history";
 const MAX_HISTORY_LENGTH = 10;
@@ -29,6 +30,8 @@ const VariationSelector = ({
 
 export default function ProductDetailsClient({ product }: { product: Product }) {
   const { isInWishlist, addToWishlist, removeFromWishlist } = useWishlist();
+  const { addToCart } = useCart();
+  const [isAdded, setIsAdded] = useState(false);
 
   const [selectedColor, setSelectedColor] = useState<ColorVariant | null>(
     product.colorVariants?.[0] || null
@@ -48,6 +51,12 @@ export default function ProductDetailsClient({ product }: { product: Product }) 
     } else {
       addToWishlist(product.id);
     }
+  };
+
+  const handleAddToCart = () => {
+    addToCart(product, 1, selectedColor, selectedSize, selectedVariant);
+    setIsAdded(true);
+    setTimeout(() => setIsAdded(false), 2000);
   };
 
   useEffect(() => {
@@ -194,8 +203,18 @@ export default function ProductDetailsClient({ product }: { product: Product }) 
             <Button
             size="lg"
             className="flex-1 font-bold text-lg transition-all duration-300 active:scale-95 hover:shadow-lg hover:shadow-primary/30 hover:-translate-y-1 bg-gradient-to-br from-primary to-red-500 text-white"
+            onClick={handleAddToCart}
+            disabled={isAdded}
             >
-            <ShoppingBag className="mr-2 h-5 w-5" /> Add to Bag
+            {isAdded ? (
+                <>
+                <Check className="mr-2 h-5 w-5" /> Added!
+                </>
+            ) : (
+                <>
+                <ShoppingBag className="mr-2 h-5 w-5" /> Add to Bag
+                </>
+            )}
             </Button>
             <Button
             size="lg"
