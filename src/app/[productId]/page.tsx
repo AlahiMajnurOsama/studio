@@ -1,11 +1,9 @@
-import { collection, doc, getDoc, getDocs } from "firebase/firestore";
+import { collection, doc, getDoc, getDocs, query, where, limit } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import type { Product } from "@/lib/types";
 import { notFound } from "next/navigation";
-import Image from "next/image";
 import ProductDetailsClient from "./ProductDetailsClient";
 import ProductCard from "@/components/ProductCard";
-import Particles from "@/components/Particles";
 
 async function getProduct(productId: string): Promise<Product | null> {
   const docRef = doc(db, "products", productId);
@@ -16,8 +14,17 @@ async function getProduct(productId: string): Promise<Product | null> {
   return null;
 }
 
-async function getProducts(): Promise<Product[]> {
-    const querySnapshot = await getDocs(collection(db, "products"));
+async function getRelatedProducts(product: Product): Promise<Product[]> {
+    if (!product.category) return [];
+    
+    const q = query(
+        collection(db, "products"), 
+        where("category", "==", product.category),
+        where("id", "!=", product.id),
+        limit(4)
+    );
+    
+    const querySnapshot = await getDocs(q);
     return querySnapshot.docs.map(doc => doc.data() as Product);
 }
 
@@ -33,11 +40,7 @@ export default async function ProductDetailsPage({
     notFound();
   }
   
-  const allProducts = await getProducts();
-
-  const relatedProducts = allProducts
-    .filter((p) => p.category === product.category && p.id !== product.id)
-    .slice(0, 4);
+  const relatedProducts = await getRelatedProducts(product);
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -64,11 +67,4 @@ export default async function ProductDetailsPage({
       </div>
     </div>
   );
-}
-
-export async function generateStaticParams() {
-    const products = await getProducts();
-    return products.map((product) => ({
-        productId: product.id,
-    }));
 }
