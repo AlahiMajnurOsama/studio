@@ -46,35 +46,9 @@ export default async function ProductDetailsPage({
             <div className="absolute w-[50vw] h-[50vw] rounded-full bg-primary/30 -translate-x-1/2 -translate-y-1/2 blur-3xl"></div>
             <div className="absolute w-[40vw] h-[40vw] rounded-full bg-red-500/30 top-full left-full -translate-x-1/2 -translate-y-1/2 blur-3xl"></div>
         </div>
-        <div className="grid lg:grid-cols-2 gap-12 items-center relative z-10">
-          <div className="relative w-full h-[60vh] flex items-center justify-center">
-             <div className="absolute inset-0 z-0">
-                <Particles
-                    particleColors={['#9D4EDD', '#5A86FF']}
-                    particleCount={200}
-                    particleSpread={10}
-                    speed={0.1}
-                    particleBaseSize={100}
-                    moveParticlesOnHover={true}
-                    alphaParticles={false}
-                    disableRotation={false}
-                />
-            </div>
-            <div className="relative w-[80%] aspect-square group transition-transform duration-500 hover:scale-105 z-10">
-              <Image
-                  src={product.image}
-                  alt={product.name}
-                  fill
-                  className="object-contain drop-shadow-[0_25px_25px_rgba(0,0,0,0.5)]"
-                  data-ai-hint={`${product.category} product`}
-                />
-            </div>
-          </div>
-          
-          <ProductDetailsClient product={product} />
-
-        </div>
         
+        <ProductDetailsClient product={product} />
+
         {relatedProducts.length > 0 && (
           <div className="mt-24 pt-12 border-t border-white/10">
             <h2 className="text-3xl font-bold text-center mb-10 font-headline">

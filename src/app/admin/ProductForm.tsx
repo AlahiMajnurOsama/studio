@@ -3,7 +3,7 @@
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import type { Product, ProductVariant } from "@/lib/types";
+import type { Product } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -32,7 +32,10 @@ const formSchema = z.object({
   price: z.coerce.number().min(0, "Price must be a positive number.").optional(),
   image: z.string().url("Must be a valid URL.").optional(),
   category: z.enum(['Health & Beauty', 'Electronics', 'Fashion', 'Home & Living', 'Groceries']).optional(),
-  colors: z.string().optional(), // Comma-separated
+  colorVariants: z.array(z.object({
+    color: z.string().min(1, "Color hex code is required."),
+    image: z.string().url("Must be a valid image URL."),
+  })).optional(),
   sizes: z.string().optional(), // Comma-separated
   variants: z.array(z.object({
     name: z.string().min(1, "Variant name cannot be empty"),
@@ -54,7 +57,7 @@ export default function ProductForm({ onSubmit, product }: ProductFormProps) {
     price: product?.price || 0,
     image: product?.image || "",
     category: product?.category || undefined,
-    colors: product?.colors?.join(", ") || "",
+    colorVariants: product?.colorVariants || [],
     sizes: product?.sizes?.join(", ") || "",
     variants: product?.variants || [],
   };
@@ -64,10 +67,16 @@ export default function ProductForm({ onSubmit, product }: ProductFormProps) {
     defaultValues,
   });
   
-  const { fields, append, remove } = useFieldArray({
+  const { fields: variantFields, append: appendVariant, remove: removeVariant } = useFieldArray({
     control: form.control,
     name: "variants",
   });
+
+  const { fields: colorFields, append: appendColor, remove: removeColor } = useFieldArray({
+    control: form.control,
+    name: "colorVariants",
+  });
+
 
   useEffect(() => {
     if (product) {
@@ -81,7 +90,6 @@ export default function ProductForm({ onSubmit, product }: ProductFormProps) {
       ...values,
       price: values.price || 0,
       image: values.image || '',
-      colors: values.colors ? values.colors.split(",").map((s) => s.trim()).filter(Boolean) : [],
       sizes: values.sizes ? values.sizes.split(",").map((s) => s.trim()).filter(Boolean) : [],
       variants: values.variants?.map(v => ({...v, priceModifier: v.priceModifier || 0}))
     };
@@ -161,30 +169,70 @@ export default function ProductForm({ onSubmit, product }: ProductFormProps) {
           name="image"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Image URL</FormLabel>
+              <FormLabel>Default Image URL</FormLabel>
               <FormControl>
                 <Input placeholder="https://picsum.photos/seed/..." {...field} />
               </FormControl>
+               <FormDescription>
+                    This is the main image shown before a color is selected.
+                </FormDescription>
               <FormMessage />
             </FormItem>
           )}
         />
-        <FormField
-            control={form.control}
-            name="colors"
-            render={({ field }) => (
-                <FormItem>
-                <FormLabel>Colors</FormLabel>
-                <FormControl>
-                    <Input placeholder="#343a40, #f8f9fa, #9D4EDD" {...field} />
-                </FormControl>
-                <FormDescription>
-                    Comma-separated hex codes.
-                </FormDescription>
-                <FormMessage />
-                </FormItem>
-            )}
-        />
+        
+        <div>
+            <FormLabel>Color Variants</FormLabel>
+            <FormDescription className="mb-2">
+                Add colors and a specific image URL for each.
+            </FormDescription>
+            <div className="space-y-4">
+                {colorFields.map((field, index) => (
+                    <div key={field.id} className="flex items-end gap-4 p-4 border rounded-md">
+                        <FormField
+                        control={form.control}
+                        name={`colorVariants.${index}.color`}
+                        render={({ field }) => (
+                            <FormItem className="w-24">
+                                <FormLabel>Color</FormLabel>
+                                <FormControl>
+                                    <Input placeholder="#9D4EDD" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                        />
+                        <FormField
+                        control={form.control}
+                        name={`colorVariants.${index}.image`}
+                        render={({ field }) => (
+                            <FormItem className="flex-grow">
+                                <FormLabel>Image URL</FormLabel>
+                                <FormControl>
+                                    <Input placeholder="https://picsum.photos/..." {...field} />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                        />
+                        <Button type="button" variant="destructive" size="icon" onClick={() => removeColor(index)}>
+                            <Trash2 className="h-4 w-4" />
+                        </Button>
+                    </div>
+                ))}
+            </div>
+            <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="mt-2"
+                onClick={() => appendColor({ color: '', image: '' })}
+            >
+                <PlusCircle className="mr-2 h-4 w-4" />
+                Add Color Variant
+            </Button>
+        </div>
+
         <FormField
             control={form.control}
             name="sizes"
@@ -208,7 +256,7 @@ export default function ProductForm({ onSubmit, product }: ProductFormProps) {
                 Add different versions of the product. You can add a price modifier for each.
             </FormDescription>
             <div className="space-y-4">
-                {fields.map((field, index) => (
+                {variantFields.map((field, index) => (
                     <div key={field.id} className="flex items-end gap-4 p-4 border rounded-md">
                         <FormField
                         control={form.control}
@@ -236,7 +284,7 @@ export default function ProductForm({ onSubmit, product }: ProductFormProps) {
                             </FormItem>
                         )}
                         />
-                        <Button type="button" variant="destructive" size="icon" onClick={() => remove(index)}>
+                        <Button type="button" variant="destructive" size="icon" onClick={() => removeVariant(index)}>
                             <Trash2 className="h-4 w-4" />
                         </Button>
                     </div>
@@ -247,7 +295,7 @@ export default function ProductForm({ onSubmit, product }: ProductFormProps) {
                 variant="outline"
                 size="sm"
                 className="mt-2"
-                onClick={() => append({ name: '', priceModifier: 0 })}
+                onClick={() => appendVariant({ name: '', priceModifier: 0 })}
             >
                 <PlusCircle className="mr-2 h-4 w-4" />
                 Add Variant
