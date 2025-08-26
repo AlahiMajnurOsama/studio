@@ -24,6 +24,8 @@ interface AppContextType {
   setSelectedCategories: (categories: string[]) => void;
   toggleCategory: (category: string) => void;
   clearFilters: () => void;
+  isPageLoading: boolean;
+  setPageLoading: (isLoading: boolean) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -34,6 +36,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [sort, setSort] = useState('popularity-desc');
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 1000]);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [isPageLoading, setPageLoading] = useState(false);
 
   useEffect(() => {
     const storedTheme = localStorage.getItem('theme') as Theme | null;
@@ -74,6 +77,8 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     setSelectedCategories,
     toggleCategory,
     clearFilters,
+    isPageLoading,
+    setPageLoading,
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

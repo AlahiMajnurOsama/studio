@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useTransition, useCallback } from 'react';
 import Link from 'next/link';
 import { ShoppingBag, User, Search, X, Sun, Moon } from 'lucide-react';
 import { Button } from './ui/button';
@@ -17,6 +17,7 @@ import {
 import { useAppContext } from '@/context/AppContext';
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { usePathname, useRouter } from 'next/navigation';
 
 const ThemeSwitcher = () => {
   const { theme, setTheme } = useAppContext();
@@ -131,14 +132,30 @@ const SearchBar = () => {
 
 const Header = () => {
   const isMobile = useIsMobile();
+  const { setPageLoading } = useAppContext();
+  const router = useRouter();
+  const pathname = usePathname();
+  const [isPending, startTransition] = useTransition();
+  
+  useEffect(() => {
+    setPageLoading(isPending);
+  }, [isPending, setPageLoading]);
+  
+  const handleNav = useCallback((href: string) => (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (pathname === href) return;
+    startTransition(() => {
+      router.push(href);
+    });
+  }, [pathname, router]);
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 w-full bg-background/80 backdrop-blur-md">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-20">
-          <Link href="/" className="flex items-center space-x-2">
+          <a href="/" onClick={handleNav('/')} className="flex items-center space-x-2">
             <Logo />
-          </Link>
+          </a>
           
           {!isMobile && <SearchBar />}
 

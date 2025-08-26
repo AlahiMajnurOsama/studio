@@ -4,6 +4,7 @@ import { Toaster } from '@/components/ui/toaster';
 import { WishlistProvider } from '@/hooks/useWishlist';
 import Header from '@/components/Header';
 import { AppProvider } from '@/context/AppContext';
+import PageLoader from '@/components/PageLoader';
 
 export const metadata: Metadata = {
   title: 'Poshra',
@@ -34,6 +35,7 @@ export default function RootLayout({
           <WishlistProvider>
             <Header />
             <main className="flex-grow pt-20">{children}</main>
+            <PageLoader />
           </WishlistProvider>
         </AppProvider>
         <Toaster />
