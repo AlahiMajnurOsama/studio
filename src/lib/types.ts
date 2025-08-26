@@ -47,7 +47,7 @@ export type Order = {
   status: 'Pending' | 'Completed' | 'Failed';
   paymentMethod: string;
   aiAnalysis: {
-    riskScore: number;
+    riskScore: number; // Using -1 to indicate "Pending Analysis"
     summary: string;
     keyFactors: string[];
   };
