@@ -1,19 +1,53 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { useWishlist } from "@/hooks/useWishlist";
-import { products } from "@/lib/data";
+import { db } from "@/lib/firebase";
+import { collection, getDocs, query, where, documentId } from "firebase/firestore";
+import type { Product } from "@/lib/types";
 import ProductCard from "@/components/ProductCard";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function WishlistPage() {
   const { wishlist } = useWishlist();
-  const wishlistedProducts = products.filter((p) => wishlist.includes(p.id));
+  const [wishlistedProducts, setWishlistedProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchWishlistedProducts = async () => {
+      if (wishlist.length === 0) {
+        setLoading(false);
+        setWishlistedProducts([]);
+        return;
+      }
+
+      setLoading(true);
+      try {
+        const productsRef = collection(db, "products");
+        const q = query(productsRef, where(documentId(), "in", wishlist));
+        const querySnapshot = await getDocs(q);
+        const productsData = querySnapshot.docs.map(doc => doc.data() as Product);
+        setWishlistedProducts(productsData);
+      } catch (error) {
+        console.error("Error fetching wishlisted products: ", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchWishlistedProducts();
+  }, [wishlist]);
 
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-4xl font-bold font-headline mb-8 tracking-tight">Your Wishlist</h1>
-      {wishlistedProducts.length > 0 ? (
+      {loading ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-96 w-full" />)}
+        </div>
+      ) : wishlistedProducts.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
           {wishlistedProducts.map((product) => (
             <ProductCard key={product.id} product={product} />

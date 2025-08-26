@@ -1,21 +1,40 @@
-import { products } from "@/lib/data";
+import { collection, doc, getDoc, getDocs } from "firebase/firestore";
+import { db } from "@/lib/firebase";
+import type { Product } from "@/lib/types";
 import { notFound } from "next/navigation";
 import Image from "next/image";
 import ProductDetailsClient from "./ProductDetailsClient";
 import ProductCard from "@/components/ProductCard";
 
-export default function ProductDetailsPage({
+async function getProduct(productId: string): Promise<Product | null> {
+  const docRef = doc(db, "products", productId);
+  const docSnap = await getDoc(docRef);
+  if (docSnap.exists()) {
+    return docSnap.data() as Product;
+  }
+  return null;
+}
+
+async function getProducts(): Promise<Product[]> {
+    const querySnapshot = await getDocs(collection(db, "products"));
+    return querySnapshot.docs.map(doc => doc.data() as Product);
+}
+
+
+export default async function ProductDetailsPage({
   params,
 }: {
   params: { productId: string };
 }) {
-  const product = products.find((p) => p.id === params.productId);
+  const product = await getProduct(params.productId);
 
   if (!product) {
     notFound();
   }
+  
+  const allProducts = await getProducts();
 
-  const relatedProducts = products
+  const relatedProducts = allProducts
     .filter((p) => p.category === product.category && p.id !== product.id)
     .slice(0, 4);
 
@@ -60,7 +79,8 @@ export default function ProductDetailsPage({
   );
 }
 
-export function generateStaticParams() {
+export async function generateStaticParams() {
+    const products = await getProducts();
     return products.map((product) => ({
         productId: product.id,
     }));

@@ -2,14 +2,13 @@
 
 import { useEffect, useState } from "react";
 import ProductCard from "./ProductCard";
-import { products } from "@/lib/data";
 import type { Product } from "@/lib/types";
 import { getProductRecommendations } from "@/ai/flows/product-recommendations";
 import { Loader } from "./ui/loader";
 
 const BROWSING_HISTORY_KEY = "chromashop_browsing_history";
 
-export default function ProductRecommendations() {
+export default function ProductRecommendations({ allProducts }: { allProducts: Product[] }) {
   const [recommendations, setRecommendations] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [browsingHistory, setBrowsingHistory] = useState<string[]>([]);
@@ -26,7 +25,7 @@ export default function ProductRecommendations() {
   }, []);
 
   useEffect(() => {
-    if (browsingHistory.length === 0) {
+    if (browsingHistory.length === 0 || allProducts.length === 0) {
       setLoading(false);
       return;
     }
@@ -36,12 +35,11 @@ export default function ProductRecommendations() {
         setLoading(true);
         const result = await getProductRecommendations({ browsingHistory });
         
-        // Filter out products already in history and map IDs to full product objects
         const recommendedProducts = result.recommendations
           .filter(id => !browsingHistory.includes(id))
-          .map(id => products.find(p => p.id === id))
+          .map(id => allProducts.find(p => p.id === id))
           .filter((p): p is Product => p !== undefined)
-          .slice(0, 4); // Show up to 4 recommendations
+          .slice(0, 4); 
 
         setRecommendations(recommendedProducts);
       } catch (error) {
@@ -52,7 +50,7 @@ export default function ProductRecommendations() {
     };
 
     fetchRecommendations();
-  }, [browsingHistory]);
+  }, [browsingHistory, allProducts]);
 
   if (loading) {
     return (
@@ -68,7 +66,7 @@ export default function ProductRecommendations() {
   }
 
   if (recommendations.length === 0) {
-    return null; // Don't show the section if there are no recommendations
+    return null;
   }
 
   return (

@@ -12,6 +12,9 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
+import { collection, getDocs } from "firebase/firestore";
+import { db } from "@/lib/firebase";
+import type { Product } from "@/lib/types";
 
 /**
  * Input schema for the product recommendation flow.
@@ -52,12 +55,21 @@ export async function getProductRecommendations(input: ProductRecommendationInpu
 
 const productRecommendationPrompt = ai.definePrompt({
   name: 'productRecommendationPrompt',
-  input: {schema: ProductRecommendationInputSchema},
+  input: {schema: z.object({
+    browsingHistory: z.array(z.string()),
+    allProducts: z.string(),
+  })},
   output: {schema: ProductRecommendationOutputSchema},
-  prompt: `You are a product recommendation expert. Given a user's browsing history, you will recommend products that the user might be interested in.
+  prompt: `You are a product recommendation expert. Given a user's browsing history and a list of all available products, you will recommend products that the user might be interested in.
 
-  Browsing History: {{browsingHistory}}
+  Available Products (JSON format):
+  {{{allProducts}}}
 
+  User's Browsing History (array of product IDs):
+  {{browsingHistory}}
+
+  Based on the user's history, provide a list of recommended product IDs. Only recommend products from the available list.
+  
   Recommendations:`,
 });
 
@@ -71,7 +83,14 @@ const productRecommendationFlow = ai.defineFlow(
     outputSchema: ProductRecommendationOutputSchema,
   },
   async input => {
-    const {output} = await productRecommendationPrompt(input);
+    const querySnapshot = await getDocs(collection(db, "products"));
+    const allProducts = querySnapshot.docs.map(doc => doc.data() as Product);
+    const allProductsString = JSON.stringify(allProducts);
+
+    const {output} = await productRecommendationPrompt({
+        browsingHistory: input.browsingHistory,
+        allProducts: allProductsString,
+    });
     return output!;
   }
 );

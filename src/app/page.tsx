@@ -1,8 +1,9 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useState, useMemo } from "react";
 import type { Product } from "@/lib/types";
-import { products } from "@/lib/data";
+import { db } from "@/lib/firebase";
+import { collection, getDocs } from "firebase/firestore";
 import ProductCard from "@/components/ProductCard";
 import {
   Select,
@@ -26,8 +27,7 @@ import {
   CarouselPrevious,
 } from "@/components/ui/carousel";
 import { useAppContext } from "@/context/AppContext";
-
-const allCategories = Array.from(new Set(products.map((p) => p.category)));
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function Home() {
   const {
@@ -39,6 +39,26 @@ export default function Home() {
     toggleCategory,
     clearFilters,
   } = useAppContext();
+
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const querySnapshot = await getDocs(collection(db, "products"));
+        const productsData = querySnapshot.docs.map(doc => doc.data() as Product);
+        setProducts(productsData);
+      } catch (error) {
+        console.error("Error fetching products from Firestore: ", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProducts();
+  }, []);
+
+  const allCategories = useMemo(() => Array.from(new Set(products.map((p) => p.category))), [products]);
 
   const filteredProducts = useMemo(() => {
     return products
@@ -70,7 +90,7 @@ export default function Home() {
             return 0;
         }
       });
-  }, [search, sort, priceRange, selectedCategories]);
+  }, [search, sort, priceRange, selectedCategories, products]);
 
   const heroBanners = [
     {
@@ -146,19 +166,23 @@ export default function Home() {
           </Link>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-          {allCategories.map((category) => (
-            <button
-              key={category}
-              onClick={() => toggleCategory(category)}
-              className={`p-4 rounded-lg text-center font-semibold transition-all duration-300 border-2 ${
-                selectedCategories.includes(category)
-                  ? 'bg-primary/10 border-primary text-primary'
-                  : 'bg-card hover:shadow-md hover:-translate-y-1 border-transparent'
-              }`}
-            >
-              {category}
-            </button>
-          ))}
+          {loading ? (
+             Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-16 w-full" />)
+          ) : (
+            allCategories.map((category) => (
+              <button
+                key={category}
+                onClick={() => toggleCategory(category)}
+                className={`p-4 rounded-lg text-center font-semibold transition-all duration-300 border-2 ${
+                  selectedCategories.includes(category)
+                    ? 'bg-primary/10 border-primary text-primary'
+                    : 'bg-card hover:shadow-md hover:-translate-y-1 border-transparent'
+                }`}
+              >
+                {category}
+              </button>
+            ))
+          )}
         </div>
       </section>
 
@@ -181,7 +205,7 @@ export default function Home() {
                 max={1000}
                 step={10}
                 value={priceRange}
-                onValueChange={(value) => setPriceRange(value)}
+                onValueChange={(value) => setPriceRange(value as [number, number])}
                 className="mt-2"
               />
             </div>
@@ -204,11 +228,15 @@ export default function Home() {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {filteredProducts.map((product) => (
-              <ProductCard key={product.id} product={product} />
-            ))}
+            {loading ? (
+              Array.from({ length: 8 }).map((_, i) => <Skeleton key={i} className="h-96 w-full" />)
+            ) : (
+              filteredProducts.map((product) => (
+                <ProductCard key={product.id} product={product} />
+              ))
+            )}
           </div>
-          {filteredProducts.length === 0 && (
+          {!loading && filteredProducts.length === 0 && (
             <div className="text-center py-12 col-span-full">
               <p className="text-muted-foreground">
                 No products found. Try adjusting your filters!
@@ -218,7 +246,7 @@ export default function Home() {
         </main>
       </div>
 
-      <ProductRecommendations />
+      <ProductRecommendations allProducts={products} />
     </div>
   );
 }
