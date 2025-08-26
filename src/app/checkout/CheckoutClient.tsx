@@ -1,36 +1,39 @@
 
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useTransition } from "react";
 import { useCart } from "@/hooks/useCart";
 import { useAuth } from "@/hooks/useAuth";
-import type { CartItem } from "@/lib/types";
+import type { CartItem, Order } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import Image from "next/image";
-import { CheckCircle, ShoppingBag, Download } from "lucide-react";
+import { CheckCircle, ShoppingBag, Download, Loader2 } from "lucide-react";
 import Link from "next/link";
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import { format } from 'date-fns';
+import { createOrder } from "../actions";
+import { useToast } from "@/hooks/use-toast";
 
 
 type CheckoutStep = "initial" | "guest_form" | "payment" | "success";
 
-interface CompletedOrder {
-  transactionId: string;
-  items: CartItem[];
-  total: number;
+// Use Omit to remove the Timestamp version of orderDate for client-side state
+type CompletedOrder = Omit<Order, 'orderDate'> & {
   orderDate: Date;
-}
+};
+
 
 export default function CheckoutClient() {
   const { cart, subtotal, totalItems, clearCart } = useCart();
   const { user, signInWithGoogle } = useAuth();
   const billRef = useRef<HTMLDivElement>(null);
+  const [isPending, startTransition] = useTransition();
+  const { toast } = useToast();
 
   const [step, setStep] = useState<CheckoutStep>("initial");
   const [completedOrder, setCompletedOrder] = useState<CompletedOrder | null>(null);
@@ -49,7 +52,7 @@ export default function CheckoutClient() {
         const canvas = await html2canvas(billElement, {
             scale: 2, 
             useCORS: true, 
-            backgroundColor: document.documentElement.classList.contains('dark') ? '#0a0a0a' : '#ffffff' // Adjusted background for better PDF
+            backgroundColor: document.documentElement.classList.contains('dark') ? '#0a0a0a' : '#ffffff' 
         });
         const imgData = canvas.toDataURL('image/png');
         
@@ -60,7 +63,7 @@ export default function CheckoutClient() {
         });
         
         pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
-        pdf.save(`Shohure-Receipt-${completedOrder?.transactionId}.pdf`);
+        pdf.save(`Shohure-Receipt-${completedOrder?.id}.pdf`);
 
     } catch (error) {
         console.error("Error generating PDF:", error);
@@ -89,20 +92,20 @@ export default function CheckoutClient() {
   };
 
   const handleDemoPayment = () => {
-    console.log("Processing payment for:", user || guestDetails);
-    console.log("Order details:", cart);
-
-    const transactionId = `TRX-${Date.now()}`;
-    
-    setCompletedOrder({
-      transactionId,
-      items: [...cart],
-      total: subtotal,
-      orderDate: new Date(),
+    startTransition(async () => {
+        const result = await createOrder(guestDetails, cart, subtotal);
+        if (result.success && result.order) {
+            setCompletedOrder(result.order as CompletedOrder);
+            clearCart();
+            setStep("success");
+        } else {
+             toast({
+                title: "Order Failed",
+                description: result.error || "Something went wrong. Please try again.",
+                variant: "destructive"
+            });
+        }
     });
-    
-    clearCart();
-    setStep("success");
   };
 
   const renderInitialStep = () => (
@@ -146,7 +149,7 @@ export default function CheckoutClient() {
           </div>
           <div className="space-y-2">
             <Label htmlFor="address">Shipping Address</Label>
-            <Input id="address" required value={guestDetails.address} onChange={(e) => setGuestDetails({...guestDetails, address: e.target.value})} />
+            <Input id="address" required placeholder="e.g. 123 Main St, Anytown, USA" value={guestDetails.address} onChange={(e) => setGuestDetails({...guestDetails, address: e.target.value})} />
           </div>
         </CardContent>
         <CardFooter>
@@ -164,10 +167,11 @@ export default function CheckoutClient() {
                 <CardTitle>Confirm Your Order</CardTitle>
             </CardHeader>
             <CardContent>
-                <p>Please review your order and press the button below to complete your purchase using our demo payment system.</p>
+                <p>Please review your order and press the button below to complete your purchase using our demo payment system. An AI fraud check will be performed.</p>
             </CardContent>
             <CardFooter>
-                <Button className="w-full" size="lg" onClick={handleDemoPayment}>
+                <Button className="w-full" size="lg" onClick={handleDemoPayment} disabled={isPending}>
+                    {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     Complete Purchase (Demo)
                 </Button>
             </CardFooter>
@@ -175,8 +179,8 @@ export default function CheckoutClient() {
     </div>
   );
   
-  const renderSuccessStep = () => (
-      <div className="max-w-md mx-auto animate-fade-in space-y-6">
+ const renderSuccessStep = () => (
+      <div className="max-w-2xl mx-auto animate-fade-in space-y-6">
         <div className="text-center">
             <CheckCircle className="mx-auto h-16 w-16 text-green-500" />
             <h2 className="mt-4 text-3xl font-bold">Thank You For Your Order!</h2>
@@ -185,17 +189,35 @@ export default function CheckoutClient() {
             </p>
         </div>
         
-        <div ref={billRef} className="p-8 border rounded-2xl bg-card text-card-foreground shadow-lg font-mono">
-            <div className="text-center space-y-2 mb-8">
-                <h3 className="text-2xl font-bold text-blue-500 tracking-widest">RECEIPT</h3>
-                <p className="font-semibold text-orange-500">Bill ID: {completedOrder?.transactionId}</p>
-                <p className="text-sm text-muted-foreground">
-                    {completedOrder?.orderDate ? format(completedOrder.orderDate, 'MM/dd/yyyy, h:mm:ss a') : ''}
-                </p>
+        <div ref={billRef} className="p-8 border rounded-lg bg-card text-card-foreground shadow-lg font-sans">
+            <div className="flex justify-between items-start mb-8">
+                <div>
+                    <h2 className="text-2xl font-bold text-primary">Shohure / শহুরে</h2>
+                    <p className="text-muted-foreground text-sm">Order Invoice</p>
+                </div>
+                <div className="text-right">
+                    <p className="font-semibold">Receipt #{completedOrder?.id.slice(-8)}</p>
+                    <p className="text-sm text-muted-foreground">
+                        {completedOrder?.orderDate ? format(completedOrder.orderDate, 'MMM dd, yyyy') : ''}
+                    </p>
+                </div>
             </div>
 
-            <div className="space-y-4 border-t-2 border-dashed pt-6">
-                <div className="grid grid-cols-12 gap-2 font-bold text-blue-500">
+            <div className="grid grid-cols-2 gap-8 mb-8">
+                <div>
+                    <h3 className="font-semibold mb-2 text-muted-foreground">Billed To</h3>
+                    <p className="font-medium">{completedOrder?.customer.name}</p>
+                    <p className="text-sm">{completedOrder?.customer.email}</p>
+                    <p className="text-sm">{completedOrder?.customer.location}</p>
+                </div>
+                <div className="text-right">
+                    <h3 className="font-semibold mb-2 text-muted-foreground">Payment Method</h3>
+                    <p className="font-medium">{completedOrder?.paymentMethod}</p>
+                </div>
+            </div>
+
+            <div className="space-y-4 border-t pt-6">
+                <div className="grid grid-cols-12 gap-2 font-semibold text-muted-foreground text-sm">
                     <div className="col-span-6">Item</div>
                     <div className="col-span-3 text-center">Qty</div>
                     <div className="col-span-3 text-right">Total</div>
@@ -204,7 +226,7 @@ export default function CheckoutClient() {
                 {completedOrder?.items.map(item => {
                     const itemPrice = item.product.price + (item.selectedVariant?.priceModifier || 0);
                     return (
-                        <div key={item.id} className="grid grid-cols-12 gap-2 items-center">
+                        <div key={item.id} className="grid grid-cols-12 gap-2 items-center text-sm">
                             <div className="col-span-6">
                                 <p className="font-medium truncate">{item.product.name}</p>
                             </div>
@@ -215,20 +237,20 @@ export default function CheckoutClient() {
                 })}
             </div>
             
-            <div className="space-y-2 border-t-2 border-dashed mt-6 pt-6">
-                 <div className="flex justify-between font-medium">
-                    <span>Subtotal</span>
+            <div className="space-y-2 border-t mt-6 pt-6">
+                 <div className="flex justify-between font-medium text-sm">
+                    <span className="text-muted-foreground">Subtotal</span>
                     <span>${completedOrder?.total.toFixed(2)}</span>
                 </div>
-                 <div className="flex justify-between font-bold text-blue-500 text-lg">
+                 <div className="flex justify-between font-bold text-lg">
                     <span>Total</span>
                     <span>${completedOrder?.total.toFixed(2)}</span>
                 </div>
             </div>
 
-
-            <div className="text-center mt-8 text-lg font-semibold text-orange-500">
-                <p>Thank You!</p>
+            <div className="text-center mt-8 text-xs text-muted-foreground">
+                <p>Thank you for your purchase!</p>
+                <p>Shohure / শহুরে</p>
             </div>
         </div>
 

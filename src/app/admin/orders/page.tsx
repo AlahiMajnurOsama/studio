@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { db } from "@/lib/firebase";
-import { collection, getDocs, query, orderBy } from "firebase/firestore";
+import { collection, query, orderBy, onSnapshot } from "firebase/firestore";
 import type { Order } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
@@ -26,32 +26,31 @@ export default function AdminOrdersPage() {
     }
   }, [user, authLoading, router]);
 
-  const fetchOrders = async () => {
-    setLoading(true);
-    try {
-      const q = query(collection(db, "orders"), orderBy("orderDate", "desc"));
-      const querySnapshot = await getDocs(q);
-      const ordersData = querySnapshot.docs.map(
-        (doc) => ({ ...doc.data(), id: doc.id }) as Order
-      );
-      setOrders(ordersData);
-    } catch (error) {
-      console.error("Error fetching orders: ", error);
-      toast({
-        title: "Error",
-        description: "Failed to fetch orders. You may need to create the collection first.",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
 
   useEffect(() => {
     if (user) {
-      fetchOrders();
+      const q = query(collection(db, "orders"), orderBy("orderDate", "desc"));
+      
+      const unsubscribe = onSnapshot(q, (querySnapshot) => {
+        const ordersData = querySnapshot.docs.map(
+          (doc) => ({ ...doc.data(), id: doc.id }) as Order
+        );
+        setOrders(ordersData);
+        setLoading(false);
+      }, (error) => {
+        console.error("Error fetching orders in real-time: ", error);
+        toast({
+          title: "Error",
+          description: "Failed to fetch orders. You may need to create the collection first.",
+          variant: "destructive",
+        });
+        setLoading(false);
+      });
+
+      // Cleanup subscription on unmount
+      return () => unsubscribe();
     }
-  }, [user]);
+  }, [user, toast]);
 
   if (authLoading || !user) {
     return (
@@ -92,7 +91,7 @@ export default function AdminOrdersPage() {
          <div className="text-center py-16 border-2 border-dashed rounded-lg">
             <h2 className="text-2xl font-semibold mb-2">No orders found</h2>
             <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-              Looks like there are no orders in your database yet. You can run the script to upload sample data.
+              Looks like there are no orders in your database yet. Once a customer completes a checkout, the order will appear here in real-time.
             </p>
         </div>
       )}
