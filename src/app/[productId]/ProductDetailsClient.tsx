@@ -46,16 +46,16 @@ export default function ProductDetailsClient({ product }: { product: Product }) 
 
   return (
     <div className="flex flex-col sm:flex-row gap-4">
-      <Button size="lg" className="flex-1 transition-transform active:scale-95">
+      <Button size="lg" className="flex-1 transition-all duration-300 active:scale-95 hover:shadow-lg hover:shadow-primary/30">
         <ShoppingBag className="mr-2 h-5 w-5" /> Add to Bag
       </Button>
       <Button
         size="lg"
         variant="outline"
-        className="flex-1 transition-transform active:scale-95"
+        className="flex-1 transition-all duration-300 active:scale-95 hover:shadow-lg"
         onClick={handleWishlistToggle}
       >
-        <Heart className={cn("mr-2 h-5 w-5", isWishlisted && "fill-red-500 text-red-500")} />
+        <Heart className={cn("mr-2 h-5 w-5 transition-colors", isWishlisted && "fill-red-500 text-red-500")} />
         {isWishlisted ? "Remove from Wishlist" : "Add to Wishlist"}
       </Button>
     </div>
