@@ -3,24 +3,30 @@
 import { useState } from "react";
 import { useCart } from "@/hooks/useCart";
 import { useAuth } from "@/hooks/useAuth";
-import { useRouter } from "next/navigation";
+import type { CartItem } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import Image from "next/image";
-import { CheckCircle, ShoppingBag } from "lucide-react";
+import { CheckCircle, ShoppingBag, FileText } from "lucide-react";
 import Link from "next/link";
 
 type CheckoutStep = "initial" | "guest_form" | "payment" | "success";
 
+interface CompletedOrder {
+  transactionId: string;
+  items: CartItem[];
+  total: number;
+}
+
 export default function CheckoutClient() {
   const { cart, subtotal, totalItems, clearCart } = useCart();
   const { user, signInWithGoogle } = useAuth();
-  const router = useRouter();
 
   const [step, setStep] = useState<CheckoutStep>("initial");
+  const [completedOrder, setCompletedOrder] = useState<CompletedOrder | null>(null);
   const [guestDetails, setGuestDetails] = useState({
     name: "",
     email: "",
@@ -49,11 +55,19 @@ export default function CheckoutClient() {
   };
 
   const handleDemoPayment = () => {
-    // In a real app, you'd process the payment here.
     console.log("Processing payment for:", user || guestDetails);
     console.log("Order details:", cart);
+
+    // Generate unique transaction ID
+    const transactionId = `POSHRA-${Date.now()}-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
     
-    // Simulate success
+    // Save order details before clearing cart
+    setCompletedOrder({
+      transactionId,
+      items: [...cart],
+      total: subtotal,
+    });
+    
     clearCart();
     setStep("success");
   };
@@ -129,18 +143,62 @@ export default function CheckoutClient() {
   );
   
   const renderSuccessStep = () => (
-      <Card className="text-center animate-fade-in">
-        <CardContent className="p-8">
-            <CheckCircle className="mx-auto h-16 w-16 text-green-500" />
-            <h2 className="mt-4 text-3xl font-bold">Thank You!</h2>
-            <p className="text-muted-foreground mt-2">
-                Your order has been placed successfully.
-            </p>
-            <Button asChild className="mt-8">
-                <Link href="/">Continue Shopping</Link>
-            </Button>
-        </CardContent>
-      </Card>
+      <div className="max-w-2xl mx-auto animate-fade-in">
+        <Card>
+            <CardHeader className="text-center p-8 bg-muted/50">
+                <CheckCircle className="mx-auto h-16 w-16 text-green-500" />
+                <h2 className="mt-4 text-3xl font-bold">Thank You For Your Order!</h2>
+                <p className="text-muted-foreground mt-2">
+                    Your purchase was successful. A confirmation has been sent to your email.
+                </p>
+            </CardHeader>
+            <CardContent className="p-8">
+                <div className="space-y-4">
+                    <div className="flex justify-between items-center text-sm">
+                        <span className="font-medium text-muted-foreground">Transaction ID</span>
+                        <span className="font-mono text-xs">{completedOrder?.transactionId}</span>
+                    </div>
+                     <div className="flex justify-between items-center text-sm">
+                        <span className="font-medium text-muted-foreground">Order Date</span>
+                        <span className="font-medium">{new Date().toLocaleDateString()}</span>
+                    </div>
+                </div>
+                <Separator className="my-6" />
+                <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                    <FileText className="h-5 w-5" />
+                    Order Summary
+                </h3>
+                <div className="space-y-4">
+                    {completedOrder?.items.map(item => {
+                         const itemPrice = item.product.price + (item.selectedVariant?.priceModifier || 0);
+                         return (
+                            <div key={item.id} className="flex justify-between items-center text-sm">
+                                <div>
+                                    <p className="font-medium">{item.product.name} <span className="text-muted-foreground">x{item.quantity}</span></p>
+                                    <div className="text-xs text-muted-foreground">
+                                        {item.selectedColor && <span>{item.selectedColor.color} </span>}
+                                        {item.selectedSize && <span>/ {item.selectedSize} </span>}
+                                        {item.selectedVariant && <span>/ {item.selectedVariant.name}</span>}
+                                    </div>
+                                </div>
+                                <span className="font-medium">${(itemPrice * item.quantity).toFixed(2)}</span>
+                            </div>
+                         )
+                    })}
+                </div>
+                <Separator className="my-6" />
+                <div className="flex justify-between font-bold text-xl">
+                    <span>Total Paid</span>
+                    <span>${completedOrder?.total.toFixed(2)}</span>
+                </div>
+            </CardContent>
+            <CardFooter>
+                <Button asChild className="w-full">
+                    <Link href="/">Continue Shopping</Link>
+                </Button>
+            </CardFooter>
+        </Card>
+      </div>
   );
 
 

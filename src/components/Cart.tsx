@@ -9,6 +9,8 @@ import { Trash2, Plus, Minus } from 'lucide-react';
 import { Separator } from './ui/separator';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { useTransition, useEffect } from 'react';
+import { useAppContext } from '@/context/AppContext';
 
 interface CartProps {
   isOpen: boolean;
@@ -18,10 +20,18 @@ interface CartProps {
 export default function Cart({ isOpen, onOpenChange }: CartProps) {
   const { cart, removeFromCart, updateQuantity, subtotal, totalItems, clearCart } = useCart();
   const router = useRouter();
+  const [isPending, startTransition] = useTransition();
+  const { setPageLoading } = useAppContext();
+
+  useEffect(() => {
+    setPageLoading(isPending);
+  }, [isPending, setPageLoading]);
 
   const handleCheckout = () => {
     onOpenChange(false);
-    router.push('/checkout');
+    startTransition(() => {
+      router.push('/checkout');
+    });
   };
 
   return (
@@ -88,7 +98,7 @@ export default function Cart({ isOpen, onOpenChange }: CartProps) {
                     <span>Subtotal</span>
                     <span>${subtotal.toFixed(2)}</span>
                 </div>
-                <Button size="lg" className="w-full font-bold" onClick={handleCheckout}>
+                <Button size="lg" className="w-full font-bold" onClick={handleCheckout} disabled={isPending}>
                     Proceed to Checkout
                 </Button>
             </SheetFooter>
