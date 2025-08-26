@@ -27,14 +27,12 @@ import {
   CarouselPrevious,
 } from "@/components/ui/carousel";
 
-const allColors = Array.from(new Set(products.flatMap((p) => p.colors)));
 const allCategories = Array.from(new Set(products.map((p) => p.category)));
 
 export default function Home() {
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState("popularity-desc");
   const [priceRange, setPriceRange] = useState([0, 1000]);
-  const [selectedColors, setSelectedColors] = useState<string[]>([]);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
 
   const filteredProducts = useMemo(() => {
@@ -47,9 +45,6 @@ export default function Home() {
           .includes(searchLower);
         const priceMatch =
           product.price >= priceRange[0] && product.price <= priceRange[1];
-        const colorMatch =
-          selectedColors.length === 0 ||
-          product.colors.some((color) => selectedColors.includes(color));
         const categoryMatch =
           selectedCategories.length === 0 ||
           selectedCategories.includes(product.category);
@@ -57,7 +52,6 @@ export default function Home() {
         return (
           (nameMatch || descriptionMatch) &&
           priceMatch &&
-          colorMatch &&
           categoryMatch
         );
       })
@@ -73,15 +67,7 @@ export default function Home() {
             return 0;
         }
       });
-  }, [search, sort, priceRange, selectedColors, selectedCategories]);
-
-  const toggleColor = (color: string) => {
-    setSelectedColors((prev) =>
-      prev.includes(color)
-        ? prev.filter((c) => c !== color)
-        : [...prev, color]
-    );
-  };
+  }, [search, sort, priceRange, selectedCategories]);
 
   const toggleCategory = (category: string) => {
     setSelectedCategories((prev) =>
@@ -93,7 +79,6 @@ export default function Home() {
 
   const clearFilters = () => {
     setPriceRange([0, 1000]);
-    setSelectedColors([]);
     setSelectedCategories([]);
     setSearch("");
   };
@@ -216,25 +201,6 @@ export default function Home() {
                 onValueChange={(value) => setPriceRange(value)}
                 className="mt-2"
               />
-            </div>
-            
-            <div>
-              <h3 className="font-medium mb-2">Colors</h3>
-              <div className="flex flex-wrap gap-2">
-                {allColors.map((color) => (
-                  <button
-                    key={color}
-                    onClick={() => toggleColor(color)}
-                    className={`w-8 h-8 rounded-full border-2 transition-transform transform hover:scale-110 ${
-                      selectedColors.includes(color)
-                        ? "border-primary scale-110"
-                        : "border-border"
-                    }`}
-                    style={{ backgroundColor: color }}
-                    aria-label={`Filter by color ${color}`}
-                  />
-                ))}
-              </div>
             </div>
             
             <Button variant="ghost" onClick={clearFilters} className="w-full justify-start">

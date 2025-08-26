@@ -1,5 +1,3 @@
-"use client";
-
 import Link from "next/link";
 import Logo from "./icons/Logo";
 import { ShoppingBag, User } from "lucide-react";

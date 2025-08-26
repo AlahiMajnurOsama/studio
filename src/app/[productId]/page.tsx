@@ -44,19 +44,6 @@ export default function ProductDetailsPage({
             <p className="text-muted-foreground text-lg mb-8 leading-relaxed">
               {product.description}
             </p>
-            <div className="flex items-center gap-4 mb-8">
-              <span className="text-sm font-medium">Colors:</span>
-              <div className="flex gap-2">
-                {product.colors.map((color) => (
-                  <div
-                    key={color}
-                    className="w-8 h-8 rounded-full border-2 border-border shadow-inner"
-                    style={{ backgroundColor: color }}
-                    title={color}
-                  />
-                ))}
-              </div>
-            </div>
           </div>
           
           <ProductDetailsClient product={product} />
