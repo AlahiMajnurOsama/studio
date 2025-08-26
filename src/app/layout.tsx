@@ -27,7 +27,7 @@ export default function RootLayout({
       <body className="font-body antialiased min-h-screen flex flex-col">
         <WishlistProvider>
           <Header />
-          <main className="flex-grow pt-24">{children}</main>
+          <main className="flex-grow pt-20">{children}</main>
         </WishlistProvider>
         <Toaster />
       </body>
