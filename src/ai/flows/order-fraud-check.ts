@@ -7,7 +7,7 @@
  *
  * The flow takes customer and order details as input and returns an AI-powered fraud analysis.
  * @param {OrderFraudCheckInput} input - The input to the fraud check flow.
- * @returns {Promise<OrderFraudCheckOutput>} - A promise that resolves to the fraud analysis.
+ * @returns {Promise<OrderFraudCheckOutput>} - a promise that resolves to the fraud analysis.
  */
 
 import { ai } from '@/ai/genkit';
@@ -16,7 +16,7 @@ import { z } from 'genkit';
 /**
  * Input schema for the order fraud check flow.
  */
-export const OrderFraudCheckInputSchema = z.object({
+const OrderFraudCheckInputSchema = z.object({
   customer: z.object({
     name: z.string(),
     email: z.string(),
@@ -37,7 +37,7 @@ export type OrderFraudCheckInput = z.infer<typeof OrderFraudCheckInputSchema>;
 /**
  * Output schema for the order fraud check flow.
  */
-export const OrderFraudCheckOutputSchema = z.object({
+const OrderFraudCheckOutputSchema = z.object({
   riskScore: z.number().describe('A risk score from 0 (low risk) to 100 (high risk).'),
   summary: z.string().describe('A brief summary of the fraud analysis.'),
   keyFactors: z.array(z.string()).describe('A list of key factors that influenced the risk score.'),
@@ -79,7 +79,7 @@ const fraudCheckPrompt = ai.definePrompt({
 /**
  * Genkit flow for performing an order fraud check.
  */
-export const orderFraudCheckFlow = ai.defineFlow(
+const orderFraudCheckFlow = ai.defineFlow(
   {
     name: 'orderFraudCheckFlow',
     inputSchema: OrderFraudCheckInputSchema,
