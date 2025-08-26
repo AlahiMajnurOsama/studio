@@ -5,7 +5,7 @@ import Image from "next/image";
 import type { Product } from "@/lib/types";
 import { useWishlist } from "@/hooks/useWishlist";
 import { Button } from "./ui/button";
-import { Heart, ShoppingBag, Plus } from "lucide-react";
+import { Heart, ShoppingBag } from "lucide-react";
 import { Card, CardContent, CardFooter, CardHeader } from "./ui/card";
 import { cn } from "@/lib/utils";
 
@@ -54,7 +54,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
             onClick={handleWishlistToggle}
             aria-label={isWishlisted ? "Remove from wishlist" : "Add to wishlist"}
           >
-            <Heart className={cn("h-5 w-5", isWishlisted ? "fill-red-500 text-red-500" : "fill-white/80 text-white/80")} />
+            <Heart className={cn("h-5 w-5 transition-all", isWishlisted ? "fill-red-500 text-red-500" : "fill-white/80 text-white/80")} />
           </Button>
         </CardHeader>
         <CardContent className="p-4 flex-grow flex flex-col">
@@ -69,9 +69,9 @@ const ProductCard = ({ product }: ProductCardProps) => {
           </div>
         </CardContent>
         <CardFooter className="p-4 pt-0">
-          <Button 
-            variant="outline" 
-            className="w-full transition-all duration-300 group-hover:bg-primary group-hover:text-primary-foreground group-hover:shadow-lg group-hover:shadow-primary/30"
+          <Button
+            variant="outline"
+            className="w-full transition-all duration-300 active:scale-95 hover:shadow-lg hover:shadow-primary/30 hover:bg-primary hover:text-primary-foreground"
             onClick={handleAddToCart}
           >
             <ShoppingBag className="mr-2 h-5 w-5" /> Add to Bag
