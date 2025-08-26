@@ -4,7 +4,7 @@ export type Product = {
   description: string;
   price: number;
   image: string;
-  category: 'Lifestyle' | 'Tech' | 'Apparel' | 'Home';
+  category: 'Health & Beauty' | 'Electronics' | 'Fashion' | 'Home & Living' | 'Groceries';
   colors: string[]; // hex codes
   popularity: number; // 0-100
 };

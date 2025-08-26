@@ -14,9 +14,18 @@ import {
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
-import { Search, X } from "lucide-react";
+import { Search, X, ChevronRight } from "lucide-react";
 import ProductRecommendations from "@/components/ProductRecommendations";
 import { Button } from "@/components/ui/button";
+import Image from "next/image";
+import Link from "next/link";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel";
 
 const allColors = Array.from(new Set(products.flatMap((p) => p.colors)));
 const allCategories = Array.from(new Set(products.map((p) => p.category)));
@@ -86,23 +95,111 @@ export default function Home() {
     setPriceRange([0, 1000]);
     setSelectedColors([]);
     setSelectedCategories([]);
-  }
+    setSearch("");
+  };
+
+  const heroBanners = [
+    {
+      id: 1,
+      image: "https://picsum.photos/seed/hero1/1200/400",
+      title: "Elevate Your Tech",
+      subtitle: "Discover the latest in smart devices and accessories.",
+      hint: "modern electronics",
+    },
+    {
+      id: 2,
+      image: "https://picsum.photos/seed/hero2/1200/400",
+      title: "Refresh Your Wardrobe",
+      subtitle: "Shop the new season's trends in fashion.",
+      hint: "stylish clothing",
+    },
+    {
+      id: 3,
+      image: "https://picsum.photos/seed/hero3/1200/400",
+      title: "Create Your Sanctuary",
+      subtitle: "Find beautiful decor for your home and living space.",
+      hint: "cozy home",
+    },
+  ];
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <section className="text-center mb-12">
-        <h1 className="text-4xl md:text-6xl font-bold font-headline tracking-tight text-primary">
-          Discover Your Color
-        </h1>
-        <p className="mt-4 text-lg max-w-2xl mx-auto text-muted-foreground">
-          Explore our curated collection of vibrant products designed to bring more color into your life.
-        </p>
+      <section className="mb-12">
+        <Carousel
+          opts={{
+            align: "start",
+            loop: true,
+          }}
+          className="w-full"
+        >
+          <CarouselContent>
+            {heroBanners.map((banner) => (
+              <CarouselItem key={banner.id}>
+                <div className="relative h-56 md:h-72 lg:h-96 w-full rounded-lg overflow-hidden">
+                  <Image
+                    src={banner.image}
+                    alt={banner.title}
+                    fill
+                    className="object-cover"
+                    data-ai-hint={banner.hint}
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                  <div className="absolute bottom-0 left-0 p-6 md:p-10 text-white">
+                    <h2 className="text-3xl md:text-5xl font-bold font-headline tracking-tight">
+                      {banner.title}
+                    </h2>
+                    <p className="mt-2 text-lg md:text-xl max-w-lg">
+                      {banner.subtitle}
+                    </p>
+                  </div>
+                </div>
+              </CarouselItem>
+            ))}
+          </CarouselContent>
+          <CarouselPrevious className="absolute left-4 top-1/2 -translate-y-1/2 z-10 hidden sm:flex" />
+          <CarouselNext className="absolute right-4 top-1/2 -translate-y-1/2 z-10 hidden sm:flex" />
+        </Carousel>
       </section>
 
-      <div className="flex flex-col md:flex-row gap-8">
+      <section className="mb-12">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-2xl font-bold font-headline">Shop by Category</h2>
+          <Link href="#all-products" className="text-sm font-medium text-primary hover:underline flex items-center gap-1">
+            View All <ChevronRight className="h-4 w-4" />
+          </Link>
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+          {allCategories.map((category) => (
+            <button
+              key={category}
+              onClick={() => toggleCategory(category)}
+              className={`p-4 rounded-lg text-center font-semibold transition-all duration-300 border-2 ${
+                selectedCategories.includes(category)
+                  ? 'bg-primary/10 border-primary text-primary'
+                  : 'bg-card hover:shadow-md hover:-translate-y-1 border-transparent'
+              }`}
+            >
+              {category}
+            </button>
+          ))}
+        </div>
+      </section>
+
+      <div className="flex flex-col md:flex-row gap-8" id="all-products">
         <aside className="w-full md:w-1/4 lg:w-1/5">
           <div className="sticky top-24 space-y-6">
             <h2 className="text-2xl font-headline font-bold">Filters</h2>
+            
+            <div className="relative w-full">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+              <Input
+                type="text"
+                placeholder="Search products..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="pl-10"
+              />
+            </div>
 
             <div>
               <Label htmlFor="price-range" className="font-medium">Price Range</Label>
@@ -120,26 +217,7 @@ export default function Home() {
                 className="mt-2"
               />
             </div>
-
-            <div>
-              <h3 className="font-medium mb-2">Categories</h3>
-              <div className="flex flex-wrap gap-2">
-                {allCategories.map((category) => (
-                  <button
-                    key={category}
-                    onClick={() => toggleCategory(category)}
-                    className={`px-3 py-1 text-sm rounded-full border transition-colors ${
-                      selectedCategories.includes(category)
-                        ? "bg-primary text-primary-foreground border-primary"
-                        : "bg-card hover:bg-secondary"
-                    }`}
-                  >
-                    {category}
-                  </button>
-                ))}
-              </div>
-            </div>
-
+            
             <div>
               <h3 className="font-medium mb-2">Colors</h3>
               <div className="flex flex-wrap gap-2">
@@ -150,7 +228,7 @@ export default function Home() {
                     className={`w-8 h-8 rounded-full border-2 transition-transform transform hover:scale-110 ${
                       selectedColors.includes(color)
                         ? "border-primary scale-110"
-                        : "border-transparent"
+                        : "border-border"
                     }`}
                     style={{ backgroundColor: color }}
                     aria-label={`Filter by color ${color}`}
@@ -159,24 +237,17 @@ export default function Home() {
               </div>
             </div>
             
-            <Button variant="ghost" onClick={clearFilters} className="w-full">
-              <X className="mr-2 h-4 w-4" /> Clear Filters
+            <Button variant="ghost" onClick={clearFilters} className="w-full justify-start">
+              <X className="mr-2 h-4 w-4" /> Clear All Filters
             </Button>
           </div>
         </aside>
 
         <main className="w-full md:w-3/4 lg:w-4/5">
           <div className="flex flex-col sm:flex-row gap-4 justify-between items-center mb-6">
-            <div className="relative w-full sm:max-w-xs">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-              <Input
-                type="text"
-                placeholder="Search products..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="pl-10"
-              />
-            </div>
+            <p className="text-sm text-muted-foreground">
+              Showing {filteredProducts.length} of {products.length} products
+            </p>
             <div className="w-full sm:w-auto">
               <Select value={sort} onValueChange={setSort}>
                 <SelectTrigger className="w-full sm:w-[180px]">
