@@ -96,7 +96,7 @@ export default function CheckoutClient() {
             format: [canvas.width, canvas.height]
         });
         pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
-        pdf.save(`Shohure-Receipt-${completedOrder?.id.slice(-6)}.pdf`);
+        pdf.save(`ChromaShop-Receipt-${completedOrder?.id.slice(-6).toUpperCase()}.pdf`);
     } catch (error) {
         console.error("Error generating PDF:", error);
         toast({
@@ -154,11 +154,11 @@ export default function CheckoutClient() {
         <div ref={receiptRef} className="p-8 border rounded-lg bg-card text-card-foreground shadow-lg font-sans">
             <div className="flex justify-between items-start mb-8">
                 <div>
-                    <h2 className="text-2xl font-bold text-primary">Shohure / শহুরে</h2>
+                    <h2 className="text-2xl font-bold text-primary">ChromaShop</h2>
                     <p className="text-muted-foreground text-sm">Order Invoice</p>
                 </div>
                 <div className="text-right">
-                    <p className="font-semibold">Receipt #{completedOrder.id.slice(-8).toUpperCase()}</p>
+                    <p className="font-semibold">Receipt #{completedOrder.id.slice(-6).toUpperCase()}</p>
                     <p className="text-sm text-muted-foreground">
                         {format(new Date(completedOrder.orderDate), 'MMM dd, yyyy')}
                     </p>
@@ -185,7 +185,7 @@ export default function CheckoutClient() {
                 </div>
 
                 {completedOrder.items.map(item => {
-                    const itemPrice = item.product.price + (item.selectedVariant?.priceModifier || 0);
+                    const itemPrice = item.pricePerItem;
                     return (
                         <div key={item.id} className="grid grid-cols-12 gap-2 items-center text-sm">
                             <div className="col-span-6">
@@ -211,7 +211,7 @@ export default function CheckoutClient() {
 
             <div className="text-center mt-8 text-xs text-muted-foreground">
                 <p>Thank you for your purchase!</p>
-                <p>Shohure / শহুরে</p>
+                <p>ChromaShop</p>
             </div>
         </div>
 

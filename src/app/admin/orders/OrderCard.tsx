@@ -54,7 +54,7 @@ export default function OrderCard({ order }: OrderCardProps) {
         <div className="flex justify-between items-center">
           <div className='w-full'>
             <div className="flex justify-between items-center w-full">
-              <CardTitle className="text-lg font-bold">Order #{order.id.slice(-6)}</CardTitle>
+              <CardTitle className="text-lg font-bold">Order #{order.id.slice(-6).toUpperCase()}</CardTitle>
               <Badge variant={order.status === 'Completed' ? 'default' : 'secondary'} className={cn(order.status === 'Completed' && 'bg-green-600')}>{order.status}</Badge>
             </div>
             <div className="flex justify-between items-center text-sm text-muted-foreground mt-1">
@@ -97,7 +97,7 @@ export default function OrderCard({ order }: OrderCardProps) {
                     <p className="font-medium">{item.product.name}</p>
                     <p className="text-muted-foreground">Qty: {item.quantity}</p>
                   </div>
-                  <p className="font-medium">${(item.product.price * item.quantity).toFixed(2)}</p>
+                  <p className="font-medium">${(item.pricePerItem * item.quantity).toFixed(2)}</p>
                 </div>
               ))}
             </div>

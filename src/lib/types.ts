@@ -31,6 +31,7 @@ export type CartItem = {
   selectedColor?: ColorVariant | null;
   selectedSize?: string | null;
   selectedVariant?: ProductVariant | null;
+  pricePerItem: number;
 };
 
 export type UserDetails = {
