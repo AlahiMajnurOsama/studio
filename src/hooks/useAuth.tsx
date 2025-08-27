@@ -19,9 +19,8 @@ import {
   signInWithEmailAndPassword,
   signInAnonymously,
   signOut,
-  setPersistence,
-  browserLocalPersistence,
-  inMemoryPersistence,
+  updateProfile,
+  fetchSignInMethodsForEmail,
   User,
 } from "firebase/auth";
 import { app } from "@/lib/firebase";
@@ -31,8 +30,9 @@ interface AuthContextType {
   user: User | null;
   loading: boolean;
   signInWithGoogle: () => Promise<{ success: boolean; error?: string }>;
+  checkIfUserExists: (email: string) => Promise<{ exists: boolean; error?: string }>;
   signInWithEmail: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
-  createUserWithEmail: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  createUserWithEmail: (email: string, password: string, displayName: string) => Promise<{ success: boolean; error?: string }>;
   signInAnonymously: () => Promise<{ success: boolean; error?: string }>;
   signOutUser: () => Promise<void>;
 }
@@ -83,21 +83,37 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       return { success: false, error: errorMessage };
     }
   };
-
-  const setAuthPersistence = async (rememberMe: boolean) => {
-    await setPersistence(auth, rememberMe ? browserLocalPersistence : inMemoryPersistence);
-  };
   
-  const signInWithGoogle = useCallback(() => performAuthAction(() => signInWithPopup(auth, googleProvider)), []);
-  
-  const signInAnonymously = useCallback(() => performAuthAction(() => signInAnonymously(auth)), []);
+  const signInWithGoogle = useCallback(async () => {
+    return await performAuthAction(() => signInWithPopup(auth, googleProvider));
+  }, []);
 
-  const signInWithEmail = useCallback((email: string, password: string) => {
-    return performAuthAction(() => signInWithEmailAndPassword(auth, email, password));
+  const signInAnonymously = useCallback(async () => {
+     return await performAuthAction(() => signInAnonymously(auth));
   }, []);
   
-  const createUserWithEmail = useCallback((email: string, password: string) => {
-    return performAuthAction(() => createUserWithEmailAndPassword(auth, email, password));
+  const checkIfUserExists = useCallback(async (email: string) => {
+    try {
+      const methods = await fetchSignInMethodsForEmail(auth, email);
+      return { exists: methods.length > 0, error: undefined };
+    } catch (error) {
+       const errorMessage = handleAuthError(error);
+       return { exists: false, error: errorMessage };
+    }
+  }, []);
+
+  const signInWithEmail = useCallback(async (email: string, password: string) => {
+    return await performAuthAction(() => signInWithEmailAndPassword(auth, email, password));
+  }, []);
+
+  const createUserWithEmail = useCallback(async (email: string, password: string, displayName: string) => {
+      const authResult = await performAuthAction(async () => {
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        if (userCredential.user) {
+            await updateProfile(userCredential.user, { displayName });
+        }
+      });
+      return authResult;
   }, []);
 
   const signOutUser = useCallback(async () => {
@@ -113,12 +129,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       user,
       loading: isInitialLoading,
       signInWithGoogle,
+      checkIfUserExists,
       signInWithEmail,
       createUserWithEmail,
       signInAnonymously,
       signOutUser,
     }),
-    [user, isInitialLoading, signInWithGoogle, signInWithEmail, createUserWithEmail, signInAnonymously, signOutUser]
+    [user, isInitialLoading, signInWithGoogle, checkIfUserExists, signInWithEmail, createUserWithEmail, signInAnonymously, signOutUser]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

@@ -6,31 +6,37 @@ import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
-import { Chrome, Mail, Lock, Loader2, User } from "lucide-react";
+import { Chrome, Mail, Lock, Loader2, User, UserPlus } from "lucide-react";
 import Logo from "@/components/icons/Logo";
 import { useToast } from "@/hooks/use-toast";
-import Link from "next/link";
 import { cn } from "@/lib/utils";
+import { AnimatePresence, motion } from "framer-motion";
 
-type AuthMode = "signin" | "signup";
+type AuthStep = "initial" | "enter_password" | "enter_name";
 
 export default function SignInPage() {
-  const { user, loading, signInWithGoogle, signInWithEmail, createUserWithEmail, signInAnonymously } = useAuth();
+  const {
+    user,
+    loading,
+    signInWithGoogle,
+    signInAnonymously,
+    checkIfUserExists,
+    signInWithEmail,
+    createUserWithEmail,
+  } = useAuth();
+
   const router = useRouter();
   const { toast } = useToast();
   const [isPending, startTransition] = useTransition();
 
-  const [mode, setMode] = useState<AuthMode>("signin");
+  const [step, setStep] = useState<AuthStep>("initial");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [rememberMe, setRememberMe] = useState(false);
+  const [name, setName] = useState("");
 
   useEffect(() => {
     if (user && !loading) {
-      startTransition(() => {
-        router.push("/admin");
-      });
+      router.push("/admin");
     }
   }, [user, loading, router]);
 
@@ -47,34 +53,43 @@ export default function SignInPage() {
     });
   };
 
+  const handleEmailSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (isLoading) return;
+
+    startTransition(async () => {
+      if (step === 'initial') {
+        const { exists, error } = await checkIfUserExists(email);
+        if (error) {
+          toast({ title: "Error", description: error, variant: "destructive" });
+        } else if (exists) {
+          setStep('enter_password');
+        } else {
+          setStep('enter_name');
+        }
+      } else if (step === 'enter_password') {
+        await handleAuthAction(() => signInWithEmail(email, password));
+      } else if (step === 'enter_name') {
+        await handleAuthAction(() => createUserWithEmail(email, password, name));
+      }
+    });
+  };
+
   const handleGoogleSignIn = () => handleAuthAction(signInWithGoogle);
   const handleAnonymousSignIn = () => handleAuthAction(signInAnonymously);
 
-  const handleEmailAuth = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (mode === "signin") {
-      handleAuthAction(() => signInWithEmail(email, password));
-    } else {
-      handleAuthAction(() => createUserWithEmail(email, password));
-    }
-  };
-
   const isLoading = loading || isPending;
-
-  if (user && !loading) {
-    return null; // Don't render anything while redirecting
-  }
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-background p-4">
-      <div className="w-full max-w-md space-y-8">
+      <div className="w-full max-w-md space-y-8 overflow-hidden">
         <div className="text-center space-y-4">
           <Logo />
           <h1 className="text-4xl font-bold font-headline tracking-tight text-foreground">
-            {mode === "signin" ? "Sign In To Your Account" : "Create a New Account"}
+            Sign In or Create an Account
           </h1>
           <p className="text-muted-foreground">
-            {mode === "signin" ? "Welcome back, sign in to continue." : "Join us! It's quick and easy."}
+            Get started with Shohure
           </p>
         </div>
 
@@ -107,61 +122,104 @@ export default function SignInPage() {
           </div>
         </div>
 
-        <form onSubmit={handleEmailAuth} className="space-y-6">
-          <div className="relative">
-            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-            <Input
-              id="email"
-              type="email"
-              placeholder="Email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="pl-10 h-12 text-base"
-              disabled={isLoading}
-            />
-          </div>
-          <div className="relative">
-            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-            <Input
-              id="password"
-              type="password"
-              placeholder="Password"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="pl-10 h-12 text-base"
-              disabled={isLoading}
-            />
-          </div>
+        <form onSubmit={handleEmailSubmit} className="space-y-6">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={step}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.3 }}
+              className="space-y-6"
+            >
+              {step === 'initial' && (
+                <div className="relative">
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="Email"
+                    required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="pl-10 h-12 text-base"
+                    disabled={isLoading}
+                  />
+                </div>
+              )}
+              
+              {step === 'enter_password' && (
+                 <>
+                  <p className="text-center text-sm">Welcome back! Please enter your password.</p>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                    <Input
+                      id="password"
+                      type="password"
+                      placeholder="Password"
+                      required
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      className="pl-10 h-12 text-base"
+                      disabled={isLoading}
+                      autoFocus
+                    />
+                  </div>
+                 </>
+              )}
 
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2">
-              <Switch id="remember-me" checked={rememberMe} onCheckedChange={setRememberMe} disabled={isLoading} />
-              <Label htmlFor="remember-me">Remember me</Label>
-            </div>
-            <Link href="#" className="text-sm font-medium text-primary hover:underline">
-              Forgot password?
-            </Link>
-          </div>
+              {step === 'enter_name' && (
+                <>
+                   <p className="text-center text-sm">Looks like you're new here! Let's create your account.</p>
+                   <div className="relative">
+                    <UserPlus className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                    <Input
+                      id="name"
+                      type="text"
+                      placeholder="Full Name"
+                      required
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      className="pl-10 h-12 text-base"
+                      disabled={isLoading}
+                      autoFocus
+                    />
+                  </div>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                    <Input
+                      id="password"
+                      type="password"
+                      placeholder="Create a Password"
+                      required
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      className="pl-10 h-12 text-base"
+                      disabled={isLoading}
+                    />
+                  </div>
+                </>
+              )}
 
-          <Button type="submit" disabled={isLoading} className="w-full font-bold text-lg h-12 bg-primary hover:bg-primary/90">
+            </motion.div>
+          </AnimatePresence>
+          
+          <Button type="submit" disabled={isLoading || (step === 'initial' && !email)} className="w-full font-bold text-lg h-12 bg-primary hover:bg-primary/90">
             {isLoading && <Loader2 className="mr-2 h-5 w-5 animate-spin" />}
-            {mode === "signin" ? "Sign In" : "Sign Up"}
+            {step === 'enter_password' ? 'Sign In' : (step === 'enter_name' ? 'Create Account' : 'Continue')}
           </Button>
-        </form>
 
-        <p className="text-center text-sm text-muted-foreground">
-          {mode === "signin" ? "Don't have an account?" : "Already have an account?"}
-          <Button
-            variant="link"
-            className="font-medium text-primary hover:underline pl-2"
-            onClick={() => setMode(mode === "signin" ? "signup" : "signin")}
-            disabled={isLoading}
-          >
-            {mode === "signin" ? "Sign up" : "Sign in"}
-          </Button>
-        </p>
+          {step !== 'initial' && (
+             <Button variant="link" className="w-full" onClick={() => {
+                setStep('initial');
+                setPassword('');
+                setName('');
+             }} disabled={isLoading}>
+                Use a different email
+             </Button>
+          )}
+
+        </form>
       </div>
     </div>
   );
