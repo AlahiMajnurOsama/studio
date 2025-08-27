@@ -4,9 +4,14 @@
 import { collection, addDoc, Timestamp, doc, updateDoc } from 'firebase/firestore';
 import { headers } from 'next/headers';
 import { db } from '@/lib/firebase';
-import type { CartItem, Order, UserDetails } from '@/lib/types';
+import type { CartItem, Order, UserDetails, Product } from '@/lib/types';
 import { performFraudCheck } from '@/ai/flows/order-fraud-check';
 import { revalidatePath } from 'next/cache';
+
+// This is a type guard to check if an object is a Product.
+function isProduct(obj: any): obj is Product {
+  return obj && typeof obj.id === 'string' && typeof obj.name === 'string' && typeof obj.price === 'number';
+}
 
 export async function createOrder(userDetails: UserDetails, cart: CartItem[], total: number) {
   try {
@@ -14,7 +19,27 @@ export async function createOrder(userDetails: UserDetails, cart: CartItem[], to
     // Use 'x-forwarded-for' for production environments, fallback for local dev
     const ipAddress = headersList.get('x-forwarded-for')?.split(',')[0].trim() || '127.0.0.1';
     
-    // 1. Create the initial order object with a pending analysis state
+    // 1. Sanitize cart items for Firestore
+    // Firestore cannot serialize complex, nested custom objects.
+    // We extract only the necessary product data for the order.
+    const sanitizedCartItems = cart.map(item => {
+      if (!isProduct(item.product)) {
+          throw new Error(`Invalid product data in cart item: ${item.id}`);
+      }
+      return {
+          ...item,
+          product: {
+              id: item.product.id,
+              name: item.product.name,
+              price: item.product.price,
+              image: item.product.image,
+              category: item.product.category || 'N/A',
+          }
+      };
+    });
+
+
+    // 2. Create the initial order object with a pending analysis state
     const orderData: Omit<Order, 'id'> = {
       orderDate: Timestamp.now(),
       customer: {
@@ -24,7 +49,7 @@ export async function createOrder(userDetails: UserDetails, cart: CartItem[], to
         ipAddress: ipAddress,
         location: 'N/A', // Address not collected in this flow
       },
-      items: cart,
+      items: sanitizedCartItems,
       total: total,
       status: 'Completed', // Assume demo payment is always successful
       paymentMethod: 'Demo Payment',
@@ -35,14 +60,14 @@ export async function createOrder(userDetails: UserDetails, cart: CartItem[], to
       },
     };
 
-    // 2. Save the order to Firestore to get a unique ID
+    // 3. Save the order to Firestore to get a unique ID
     const docRef = await addDoc(collection(db, 'orders'), orderData);
     
-    // 3. Immediately revalidate the admin orders page so the new order appears
+    // 4. Immediately revalidate the admin orders page so the new order appears
     // This provides a great real-time experience for the admin
     revalidatePath('/admin/orders');
 
-    // 4. Prepare the complete order data to return to the client
+    // 5. Prepare the complete order data to return to the client
     // We convert the Firestore Timestamp to a standard Date object for client-side use
     const newOrder: Order = { 
         ...orderData, 
@@ -50,7 +75,7 @@ export async function createOrder(userDetails: UserDetails, cart: CartItem[], to
         orderDate: orderData.orderDate.toDate() 
     };
 
-    // 5. Return a success response with the new order details
+    // 6. Return a success response with the new order details
     return {
         success: true,
         order: newOrder,
