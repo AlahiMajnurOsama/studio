@@ -64,7 +64,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         case 'auth/wrong-password':
             return 'Incorrect password. Please try again.';
         case 'auth/email-already-in-use':
-            return 'This email is already registered.';
+            return 'This email is already registered. Please sign in.';
         case 'auth/weak-password':
             return 'Password should be at least 6 characters.';
         case 'auth/popup-closed-by-user':
