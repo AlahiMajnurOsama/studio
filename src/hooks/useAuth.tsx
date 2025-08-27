@@ -48,7 +48,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, [setIsInitialLoading]);
 
   const signInWithGoogle = useCallback(async () => {
-    setLoading(true);
     try {
       await signInWithPopup(auth, googleProvider);
       return true;
@@ -57,10 +56,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           console.error("Error signing in with Google: ", error);
       }
       return false;
-    } finally {
-      // Small delay to allow Firebase to update auth state if needed,
-      // but onAuthStateChanged will handle the final state update.
-      setTimeout(() => setLoading(false), 500);
     }
   }, []);
 

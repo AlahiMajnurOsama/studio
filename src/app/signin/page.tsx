@@ -16,10 +16,12 @@ export default function SignInPage() {
   const [isSigningIn, setIsSigningIn] = useState(false);
 
   useEffect(() => {
+    // This effect will trigger a page transition animation
     setPageLoading(isPending);
   }, [isPending, setPageLoading]);
 
   useEffect(() => {
+    // This effect handles redirection after a user logs in
     if (!authLoading && user) {
       startTransition(() => {
         router.push("/admin");
@@ -30,11 +32,14 @@ export default function SignInPage() {
   const handleSignIn = async () => {
     setIsSigningIn(true);
     await signInWithGoogle();
-    // The onAuthStateChanged listener in useAuth will handle redirection.
-    // We'll set signing in to false after a short delay in case of errors.
-    setTimeout(() => setIsSigningIn(false), 2000);
+    // The onAuthStateChanged listener in useAuth will update the user state.
+    // The useEffect hook above will then handle redirection.
+    // We set signing in to false to re-enable the button in case of failure.
+    setIsSigningIn(false);
   };
 
+  // The button should be disabled if the auth state is loading, 
+  // a page transition is happening, or a sign-in attempt is in progress.
   const isLoading = authLoading || isPending || isSigningIn;
 
   return (
