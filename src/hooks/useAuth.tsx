@@ -50,7 +50,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
         const tokenResult = await user.getIdTokenResult();
-        setIsAdmin(!!tokenResult.claims.admin);
+        // Grant admin access if the custom claim is set OR if the email matches the initial admin.
+        const userIsAdmin = !!tokenResult.claims.admin || user.email === 'ra726ma@gmail.com';
+        setIsAdmin(userIsAdmin);
         setUser(user);
       } else {
         setIsAdmin(false);
