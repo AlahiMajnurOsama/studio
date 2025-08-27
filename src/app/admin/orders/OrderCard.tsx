@@ -1,17 +1,17 @@
+
 "use client";
 
-import { useState, useTransition } from 'react';
+import { useState } from 'react';
 import type { Order } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
-import { ChevronDown, Copy, Bot, Sparkles, Loader2 } from 'lucide-react';
+import { ChevronDown, Copy } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import Image from 'next/image';
-import { analyzeOrderFraud } from '@/app/actions';
 
 interface OrderCardProps {
   order: Order;
@@ -46,22 +46,7 @@ const DetailRow = ({ label, value, canCopy = false }: { label: string; value?: s
 
 export default function OrderCard({ order }: OrderCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
-  const [isPending, startTransition] = useTransition();
-  const { toast } = useToast();
   const orderDate = order.orderDate.toDate ? order.orderDate.toDate() : new Date(order.orderDate as any);
-
-  const isAnalyzed = order.aiAnalysis.riskScore !== -1;
-
-  const handleAnalyzeClick = () => {
-    startTransition(async () => {
-      const result = await analyzeOrderFraud(order);
-      if (result.success) {
-        toast({ title: "Analysis Complete", description: "Fraud risk has been successfully analyzed." });
-      } else {
-        toast({ title: "Analysis Failed", description: result.error, variant: "destructive" });
-      }
-    });
-  };
 
   return (
     <Card>
@@ -93,18 +78,17 @@ export default function OrderCard({ order }: OrderCardProps) {
               <DetailRow label="Email" value={order.customer.email} canCopy />
               <DetailRow label="Phone" value={order.customer.phone} canCopy />
               <DetailRow label="IP Address" value={order.customer.ipAddress} canCopy />
-              <DetailRow label="Location" value={order.customer.location} canCopy />
             </div>
              <div>
-              <h4 className="font-semibold mb-2">Order Information</h4>
-              <DetailRow label="Order ID" value={order.id} canCopy />
-              <DetailRow label="Order Date" value={format(orderDate, 'PPpp')} />
-              <DetailRow label="Payment Method" value={order.paymentMethod} />
+              <h4 className="font-semibold mb-2">Transaction Details</h4>
+              <DetailRow label="Transaction ID" value={order.id} canCopy />
+              <DetailRow label="Transaction Date" value={format(orderDate, 'PPpp')} />
+              <DetailRow label="Payment Source" value={order.paymentMethod} />
             </div>
           </div>
           
           <div>
-            <h4 className="font-semibold mb-2">Items ({order.items.length})</h4>
+            <h4 className="font-semibold mb-2">Purchased Items ({order.items.length})</h4>
             <div className="space-y-3">
               {order.items.map(item => (
                 <div key={item.id} className="flex items-center gap-4 text-sm">
@@ -118,36 +102,6 @@ export default function OrderCard({ order }: OrderCardProps) {
               ))}
             </div>
           </div>
-
-          <Separator />
-          
-          <div>
-            <h4 className="font-semibold mb-2 flex items-center gap-2"><Bot className="h-5 w-5 text-primary" /> AI Fraud Analysis</h4>
-            {isAnalyzed ? (
-              <div className="p-4 bg-muted/50 rounded-md text-sm space-y-2">
-                <p><strong className="text-primary">Risk Score:</strong> {order.aiAnalysis.riskScore}/100</p>
-                <p><strong className="text-primary">Summary:</strong> {order.aiAnalysis.summary}</p>
-                <ul className="list-disc list-inside pl-2">
-                  {order.aiAnalysis.keyFactors.map((factor, i) => (
-                    <li key={i}>{factor}</li>
-                  ))}
-                </ul>
-              </div>
-            ) : (
-              <div className="p-4 bg-muted/50 rounded-md text-sm flex items-center justify-between">
-                <p className='text-muted-foreground'>This order has not been analyzed for fraud risk.</p>
-                 <Button onClick={handleAnalyzeClick} disabled={isPending}>
-                  {isPending ? (
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  ) : (
-                    <Sparkles className="mr-2 h-4 w-4" />
-                  )}
-                  Analyze for Fraud
-                </Button>
-              </div>
-            )}
-          </div>
-
         </CardContent>
       )}
     </Card>

@@ -51,7 +51,7 @@ export default function AdminOrdersPage() {
         console.error("Error fetching orders in real-time: ", error);
         toast({
           title: "Error",
-          description: "Failed to fetch orders. You may need to create the collection first.",
+          description: "Failed to fetch transactions. You may need to create the collection first.",
           variant: "destructive",
         });
         setLoading(false);
@@ -81,7 +81,7 @@ export default function AdminOrdersPage() {
           </Link>
         </Button>
         <h1 className="text-3xl md:text-4xl font-bold font-headline tracking-tight">
-          Customer Orders
+          Transactions
         </h1>
       </div>
 
@@ -99,9 +99,9 @@ export default function AdminOrdersPage() {
         </div>
       ) : (
          <div className="text-center py-16 border-2 border-dashed rounded-lg">
-            <h2 className="text-2xl font-semibold mb-2">No orders found</h2>
+            <h2 className="text-2xl font-semibold mb-2">No transactions found</h2>
             <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-              Looks like there are no orders in your database yet. Once a customer completes a checkout, the order will appear here in real-time.
+              Looks like there are no transactions in your database yet. Once a customer completes a checkout, the transaction will appear here in real-time.
             </p>
         </div>
       )}
