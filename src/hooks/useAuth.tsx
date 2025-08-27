@@ -26,11 +26,13 @@ import {
 import { app } from "@/lib/firebase";
 import { useAppContext } from "@/context/AppContext";
 
+type AuthProviderType = "google.com" | "password";
+
 interface AuthContextType {
   user: User | null;
   loading: boolean;
   signInWithGoogle: () => Promise<{ success: boolean; error?: string }>;
-  checkIfUserExists: (email: string) => Promise<{ exists: boolean; error?: string }>;
+  checkIfUserExists: (email: string) => Promise<{ provider: AuthProviderType | null; error?: string }>;
   signInWithEmail: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   createUserWithEmail: (email: string, password: string, displayName: string) => Promise<{ success: boolean; error?: string }>;
   signInAnonymously: () => Promise<{ success: boolean; error?: string }>;
@@ -95,10 +97,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const checkIfUserExists = useCallback(async (email: string) => {
     try {
       const methods = await fetchSignInMethodsForEmail(auth, email.toLowerCase());
-      return { exists: methods.length > 0, error: undefined };
+      const provider = methods.length > 0 ? (methods[0] as AuthProviderType) : null;
+      return { provider, error: undefined };
     } catch (error) {
        const errorMessage = handleAuthError(error);
-       return { exists: false, error: errorMessage };
+       return { provider: null, error: errorMessage };
     }
   }, []);
 

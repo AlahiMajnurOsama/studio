@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
@@ -10,8 +10,10 @@ import { Mail, Lock, Loader2, User, UserPlus } from "lucide-react";
 import Logo from "@/components/icons/Logo";
 import { useToast } from "@/hooks/use-toast";
 import { AnimatePresence, motion } from "framer-motion";
+import { useAppContext } from "@/context/AppContext";
 
-type AuthStep = "initial" | "enter_password" | "enter_name";
+type AuthStep = "initial" | "enter_password" | "enter_name" | "use_provider";
+type AuthProvider = "google.com" | "password";
 
 export default function SignInPage() {
   const {
@@ -27,17 +29,26 @@ export default function SignInPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { toast } = useToast();
+  const { setPageLoading } = useAppContext();
   
   const [step, setStep] = useState<AuthStep>("initial");
+  const [provider, setProvider] = useState<AuthProvider | null>(null);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isPending, startTransition] = useTransition();
 
   useEffect(() => {
+    setPageLoading(isPending);
+  }, [isPending, setPageLoading]);
+  
+  useEffect(() => {
     if (!loading && user) {
-      const redirectUrl = searchParams.get('redirect') || '/admin';
-      router.push(redirectUrl);
+      startTransition(() => {
+        const redirectUrl = searchParams.get('redirect') || '/admin';
+        router.push(redirectUrl);
+      });
     }
   }, [user, loading, router, searchParams]);
   
@@ -64,12 +75,18 @@ export default function SignInPage() {
     const lowerCaseEmail = email.toLowerCase();
 
     if (step === 'initial') {
-      const { exists, error } = await checkIfUserExists(lowerCaseEmail);
+      const { provider, error } = await checkIfUserExists(lowerCaseEmail);
       if (error) {
         toast({ title: "Error", description: error, variant: "destructive" });
-      } else if (exists) {
-        setStep('enter_password');
+      } else if (provider) {
+        setProvider(provider);
+        if (provider === 'password') {
+          setStep('enter_password');
+        } else {
+          setStep('use_provider');
+        }
       } else {
+        setProvider(null);
         setStep('enter_name');
       }
     } else if (step === 'enter_password') {
@@ -84,7 +101,14 @@ export default function SignInPage() {
   const handleGoogleSignIn = () => handleAuthAction(signInWithGoogle);
   const handleAnonymousSignIn = () => handleAuthAction(signInAnonymously);
 
-  const isLoading = loading || isProcessing;
+  const isLoading = loading || isProcessing || isPending;
+
+  const resetState = () => {
+    setStep('initial');
+    setPassword('');
+    setName('');
+    setProvider(null);
+  }
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-background p-4">
@@ -178,7 +202,7 @@ export default function SignInPage() {
 
               {step === 'enter_name' && (
                 <>
-                   <p className="text-center text-sm">Looks like you're new! Let's create your account.</p>
+                   <p className="text-center text-sm">Looks like you're new! Let's create your account for <span className="font-semibold">{email}</span>.</p>
                    <div className="relative">
                     <UserPlus className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                     <Input
@@ -209,20 +233,35 @@ export default function SignInPage() {
                 </>
               )}
 
+               {step === 'use_provider' && (
+                <div className="text-center space-y-4">
+                  <p className="text-sm">
+                    This email is registered with a Google account.
+                  </p>
+                  <Button
+                    onClick={handleGoogleSignIn}
+                    disabled={isLoading}
+                    variant="outline"
+                    className="w-full font-semibold text-lg h-12"
+                  >
+                    {isProcessing ? <Loader2 className="mr-3 h-5 w-5 animate-spin" /> : <svg className="mr-3 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.611 20.083H42V20H24v8h11.303c-1.649 4.657-6.08 8-11.303 8c-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4C12.955 4 4 12.955 4 24s8.955 20 20 20s20-8.955 20-20c0-1.341-.138-2.65-.389-3.917z"/><path fill="#FF3D00" d="M6.306 14.691l6.571 4.819C14.655 15.108 18.961 12 24 12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4C16.318 4 9.656 8.337 6.306 14.691z"/><path fill="#4CAF50" d="M24 44c5.166 0 9.86-1.977 13.409-5.192l-6.19-5.238C29.211 35.091 26.715 36 24 36c-5.202 0-9.619-3.317-11.283-7.946l-6.522 5.025C9.505 39.556 16.227 44 24 44z"/><path fill="#1976D2" d="M43.611 20.083H42V20H24v8h11.303c-.792 2.237-2.19 4.21-4.062 5.513l6.19 5.238C42.012 34.423 44 29.861 44 24c0-1.341-.138-2.65-.389-3.917z"/></svg>}
+                    Continue with Google
+                  </Button>
+                </div>
+              )}
+
             </motion.div>
           </AnimatePresence>
           
-          <Button type="submit" disabled={isLoading || (step === 'initial' && !email)} className="w-full font-bold text-lg h-12 bg-primary hover:bg-primary/90">
-            {isLoading && <Loader2 className="mr-2 h-5 w-5 animate-spin" />}
-            {step === 'enter_password' ? 'Sign In' : (step === 'enter_name' ? 'Create Account' : 'Continue')}
-          </Button>
+          {step !== 'use_provider' && (
+            <Button type="submit" disabled={isLoading || (step === 'initial' && !email)} className="w-full font-bold text-lg h-12 bg-primary hover:bg-primary/90">
+                {isLoading && <Loader2 className="mr-2 h-5 w-5 animate-spin" />}
+                {step === 'enter_password' ? 'Sign In' : (step === 'enter_name' ? 'Create Account' : 'Continue')}
+            </Button>
+          )}
 
           {step !== 'initial' && (
-             <Button variant="link" className="w-full" onClick={() => {
-                setStep('initial');
-                setPassword('');
-                setName('');
-             }} disabled={isLoading}>
+             <Button variant="link" className="w-full" onClick={resetState} disabled={isLoading}>
                 Use a different email
              </Button>
           )}
