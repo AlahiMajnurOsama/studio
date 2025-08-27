@@ -25,8 +25,6 @@ import {
 import { app } from "@/lib/firebase";
 import { useAppContext } from "@/context/AppContext";
 
-const ADMIN_EMAILS = ['ra726ma@gmail.com', 'mrash541@gmail.com'];
-
 interface AuthContextType {
   user: User | null;
   loading: boolean;
@@ -49,9 +47,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setUser(user);
-      setIsAdmin(user ? ADMIN_EMAILS.includes(user.email || "") : false);
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        const tokenResult = await user.getIdTokenResult();
+        setIsAdmin(!!tokenResult.claims.admin);
+        setUser(user);
+      } else {
+        setIsAdmin(false);
+        setUser(null);
+      }
       if (isInitialLoading) {
         setIsInitialLoading(false);
       }
