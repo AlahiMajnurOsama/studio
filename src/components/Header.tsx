@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useRef, useTransition, useCallback } from 'react';
@@ -146,18 +147,30 @@ const SearchBar = () => {
 const UserProfileButton = () => {
     const { user, signOutUser } = useAuth();
     const router = useRouter();
+    const { setPageLoading } = useAppContext();
+    const [isPending, startTransition] = useTransition();
+
+    useEffect(() => {
+        setPageLoading(isPending);
+    }, [isPending, setPageLoading]);
 
     const handleSignOut = async () => {
         await signOutUser();
-        router.push('/');
+        startTransition(() => {
+            router.push('/');
+        });
     };
     
     const handleSignIn = () => {
-        router.push('/signin');
+        startTransition(() => {
+            router.push('/signin');
+        });
     };
 
     const handleAdminPanel = () => {
-      router.push('/admin');
+      startTransition(() => {
+        router.push('/admin');
+      });
     }
 
     if (user) {
@@ -221,7 +234,7 @@ const Header = () => {
     startTransition(() => {
       router.push(href);
     });
-  }, [pathname, router]);
+  }, [pathname, router, startTransition]);
 
   return (
     <>

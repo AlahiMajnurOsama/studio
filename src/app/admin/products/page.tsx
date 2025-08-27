@@ -1,6 +1,7 @@
+
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { db } from "@/lib/firebase";
@@ -37,6 +38,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
 import Link from "next/link";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { useAppContext } from "@/context/AppContext";
 
 export default function AdminProductsPage() {
   const { user, loading: authLoading } = useAuth();
@@ -46,10 +48,18 @@ export default function AdminProductsPage() {
   const [loading, setLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const { setPageLoading } = useAppContext();
+  const [isPending, startTransition] = useTransition();
 
   useEffect(() => {
+    setPageLoading(isPending);
+  }, [isPending, setPageLoading]);
+  
+  useEffect(() => {
     if (!authLoading && !user) {
-      router.push("/signin");
+      startTransition(() => {
+        router.push("/signin");
+      });
     }
   }, [user, authLoading, router]);
 

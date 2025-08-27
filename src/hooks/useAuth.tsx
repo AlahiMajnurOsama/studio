@@ -1,3 +1,4 @@
+
 "use client";
 
 import {
@@ -22,7 +23,7 @@ import { app } from "@/lib/firebase";
 interface AuthContextType {
   user: User | null;
   loading: boolean;
-  signInWithGoogle: () => Promise<void>;
+  signInWithGoogle: () => Promise<boolean>;
   signOutUser: () => Promise<void>;
 }
 
@@ -47,10 +48,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setLoading(true);
     try {
       await signInWithPopup(auth, googleProvider);
-    } catch (error) {
-      console.error("Error signing in with Google: ", error);
+      return true;
+    } catch (error: any) {
+      if (error.code !== 'auth/popup-closed-by-user') {
+          console.error("Error signing in with Google: ", error);
+      }
+      return false;
     } finally {
-      setLoading(false);
+      // Small delay to allow Firebase to update auth state
+      setTimeout(() => setLoading(false), 500);
     }
   }, []);
 

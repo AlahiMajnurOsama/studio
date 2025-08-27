@@ -1,10 +1,11 @@
 
+
 "use client";
 
-import { useState, useRef, useTransition } from "react";
+import { useState, useRef, useTransition, useEffect } from "react";
 import { useCart } from "@/hooks/useCart";
 import { useAuth } from "@/hooks/useAuth";
-import type { CartItem, Order } from "@/lib/types";
+import type { Order } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -18,6 +19,7 @@ import html2canvas from 'html2canvas';
 import { format } from 'date-fns';
 import { createOrder } from "../actions";
 import { useToast } from "@/hooks/use-toast";
+import { useAppContext } from "@/context/AppContext";
 
 
 type CheckoutStep = "initial" | "guest_form" | "payment" | "success";
@@ -34,6 +36,7 @@ export default function CheckoutClient() {
   const billRef = useRef<HTMLDivElement>(null);
   const [isPending, startTransition] = useTransition();
   const { toast } = useToast();
+  const { setPageLoading } = useAppContext();
 
   const [step, setStep] = useState<CheckoutStep>("initial");
   const [completedOrder, setCompletedOrder] = useState<CompletedOrder | null>(null);
@@ -43,6 +46,10 @@ export default function CheckoutClient() {
     phone: "",
     address: "",
   });
+
+  useEffect(() => {
+    setPageLoading(isPending);
+  }, [isPending, setPageLoading]);
 
   const handleDownloadBill = async () => {
     const billElement = billRef.current;
@@ -119,8 +126,8 @@ export default function CheckoutClient() {
           Checkout as Guest
         </Button>
         <Button className="w-full" size="lg" variant="outline" onClick={async () => {
-          await signInWithGoogle();
-          if (user) setStep("payment");
+          const success = await signInWithGoogle();
+          if (success) setStep("payment");
         }}>
           Sign In & Checkout
         </Button>
@@ -325,5 +332,3 @@ export default function CheckoutClient() {
     </div>
   );
 }
-
-    

@@ -1,6 +1,7 @@
+
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { useWishlist } from "@/hooks/useWishlist";
 import { db } from "@/lib/firebase";
 import { collection, getDocs, query, where, documentId } from "firebase/firestore";
@@ -9,12 +10,19 @@ import ProductCard from "@/components/ProductCard";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useAppContext } from "@/context/AppContext";
 
 export default function WishlistPage() {
   const { wishlist } = useWishlist();
   const [wishlistedProducts, setWishlistedProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const { setPageLoading } = useAppContext();
+  const [isPending, startTransition] = useTransition();
 
+  useEffect(() => {
+    setPageLoading(isPending);
+  }, [isPending, setPageLoading]);
+  
   useEffect(() => {
     const fetchWishlistedProducts = async () => {
       if (wishlist.length === 0) {

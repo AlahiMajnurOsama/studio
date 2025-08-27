@@ -1,21 +1,31 @@
+
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { Skeleton } from "@/components/ui/skeleton";
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Package, Users, ShoppingCart } from "lucide-react";
+import { useAppContext } from "@/context/AppContext";
 
 
 export default function AdminDashboardPage() {
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
+  const { setPageLoading } = useAppContext();
+  const [isPending, startTransition] = useTransition();
+
+  useEffect(() => {
+    setPageLoading(isPending);
+  }, [isPending, setPageLoading]);
 
   useEffect(() => {
     if (!authLoading && !user) {
-      router.push("/signin");
+      startTransition(() => {
+        router.push("/signin");
+      });
     }
   }, [user, authLoading, router]);
 
