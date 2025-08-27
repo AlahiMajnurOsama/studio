@@ -27,7 +27,7 @@ export default function SignInPage() {
         router.push("/admin");
       });
     }
-  }, [user, authLoading, router]);
+  }, [user, authLoading, router, startTransition]);
   
   const handleSignIn = async () => {
     setIsSigningIn(true);
