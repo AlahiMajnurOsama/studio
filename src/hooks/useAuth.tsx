@@ -47,15 +47,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return () => unsubscribe();
   }, [setIsInitialLoading]);
 
-  const signInWithGoogle = useCallback(async () => {
+  const signInWithGoogle = useCallback(async (): Promise<boolean> => {
     try {
-      const result = await signInWithPopup(auth, googleProvider);
-      return !!result.user; // Returns true on success, false otherwise
+      await signInWithPopup(auth, googleProvider);
+      // onAuthStateChanged will handle the user state update.
+      // A successful popup resolution means success.
+      return true; 
     } catch (error: any) {
       if (error.code !== 'auth/popup-closed-by-user') {
           console.error("Error signing in with Google: ", error);
       }
-      return false; // Returns false if popup is closed or on error
+      // If the popup is closed or there's an error, it's a failure.
+      return false; 
     }
   }, []);
 

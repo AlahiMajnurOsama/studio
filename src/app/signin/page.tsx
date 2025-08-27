@@ -6,22 +6,17 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Chrome, Loader2 } from "lucide-react";
-import { useAppContext } from "@/context/AppContext";
 
 export default function SignInPage() {
   const { user, loading: authLoading, signInWithGoogle } = useAuth();
   const router = useRouter();
-  const { setPageLoading } = useAppContext();
-  const [isPending, startTransition] = useTransition();
   const [isSigningIn, setIsSigningIn] = useState(false);
-
-  useEffect(() => {
-    setPageLoading(isPending);
-  }, [isPending, setPageLoading]);
+  const [isRedirecting, startTransition] = useTransition();
   
-  // This effect handles redirection if a user is already logged in or logs in successfully
+  // Effect to redirect the user AFTER they have been successfully authenticated
   useEffect(() => {
-    if (!authLoading && user) {
+    // If we have a user and we are not in the middle of an auth check
+    if (user && !authLoading) {
       startTransition(() => {
         router.push("/admin");
       });
@@ -29,15 +24,25 @@ export default function SignInPage() {
   }, [user, authLoading, router]);
   
   const handleSignIn = async () => {
+    // 1. Enter "signing in" state to provide user feedback
     setIsSigningIn(true);
-    await signInWithGoogle();
-    // After the popup closes, the useEffect above will catch the user change and redirect.
+    
+    // 2. Start the isolated sign-in process and AWAIT the result
+    const success = await signInWithGoogle();
+    
+    // 3. Exit "signing in" state
     setIsSigningIn(false);
+    
+    // If login was not successful, we just stop here. 
+    // The user can try again. The useEffect above will handle redirection on success.
+    if (!success) {
+      console.log("Sign-in process was not completed.");
+    }
   };
 
-  const isLoading = authLoading || isPending || isSigningIn;
+  const isLoading = authLoading || isSigningIn || isRedirecting;
 
-  // Don't render the sign-in button if we know we're about to redirect.
+  // Render nothing if we know we're about to redirect.
   if (user && !authLoading) {
       return null;
   }
@@ -64,7 +69,7 @@ export default function SignInPage() {
           ) : (
             <Chrome className="mr-2 h-5 w-5" />
           )}
-          Sign in with Google
+          {isSigningIn ? 'Authenticating...' : 'Sign in with Google'}
         </Button>
       </div>
     </div>
