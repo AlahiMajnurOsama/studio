@@ -1,35 +1,41 @@
 
 "use client";
 
-import { useEffect, useTransition } from "react";
+import { useEffect, useTransition, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
-import { Chrome } from "lucide-react";
+import { Chrome, Loader2 } from "lucide-react";
 import { useAppContext } from "@/context/AppContext";
 
 export default function SignInPage() {
-  const { user, loading, signInWithGoogle } = useAuth();
+  const { user, loading: authLoading, signInWithGoogle } = useAuth();
   const router = useRouter();
   const { setPageLoading } = useAppContext();
   const [isPending, startTransition] = useTransition();
+  const [isSigningIn, setIsSigningIn] = useState(false);
 
   useEffect(() => {
     setPageLoading(isPending);
   }, [isPending, setPageLoading]);
 
   useEffect(() => {
-    if (!loading && user) {
+    if (!authLoading && user) {
       startTransition(() => {
         router.push("/admin");
       });
     }
-  }, [user, loading, router]);
+  }, [user, authLoading, router]);
   
   const handleSignIn = async () => {
+    setIsSigningIn(true);
     await signInWithGoogle();
+    // The onAuthStateChanged listener in useAuth will handle redirection.
+    // We'll set signing in to false after a short delay in case of errors.
+    setTimeout(() => setIsSigningIn(false), 2000);
   };
 
+  const isLoading = authLoading || isPending || isSigningIn;
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-background">
@@ -44,11 +50,15 @@ export default function SignInPage() {
         </div>
         <Button
           onClick={handleSignIn}
-          disabled={loading || isPending}
+          disabled={isLoading}
           className="w-full font-bold text-lg"
           size="lg"
         >
-          <Chrome className="mr-2 h-5 w-5" />
+          {isLoading ? (
+            <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+          ) : (
+            <Chrome className="mr-2 h-5 w-5" />
+          )}
           Sign in with Google
         </Button>
       </div>

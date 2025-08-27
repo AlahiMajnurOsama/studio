@@ -19,6 +19,7 @@ import {
   User,
 } from "firebase/auth";
 import { app } from "@/lib/firebase";
+import { useAppContext } from "@/context/AppContext";
 
 interface AuthContextType {
   user: User | null;
@@ -35,14 +36,16 @@ const googleProvider = new GoogleAuthProvider();
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const { setIsInitialLoading } = useAppContext();
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setUser(user);
       setLoading(false);
+      setIsInitialLoading(false);
     });
     return () => unsubscribe();
-  }, []);
+  }, [setIsInitialLoading]);
 
   const signInWithGoogle = useCallback(async () => {
     setLoading(true);
@@ -55,7 +58,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
       return false;
     } finally {
-      // Small delay to allow Firebase to update auth state
+      // Small delay to allow Firebase to update auth state if needed,
+      // but onAuthStateChanged will handle the final state update.
       setTimeout(() => setLoading(false), 500);
     }
   }, []);

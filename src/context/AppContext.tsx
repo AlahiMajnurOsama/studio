@@ -26,6 +26,8 @@ interface AppContextType {
   clearFilters: () => void;
   isPageLoading: boolean;
   setPageLoading: (isLoading: boolean) => void;
+  isInitialLoading: boolean;
+  setIsInitialLoading: (isLoading: boolean) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -37,6 +39,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 1000]);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [isPageLoading, setPageLoading] = useState(false);
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
 
   useEffect(() => {
     const storedTheme = localStorage.getItem('theme') as Theme | null;
@@ -79,6 +82,8 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     clearFilters,
     isPageLoading,
     setPageLoading,
+    isInitialLoading,
+    setIsInitialLoading,
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
