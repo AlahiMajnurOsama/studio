@@ -4,13 +4,8 @@
 import { collection, addDoc, Timestamp } from 'firebase/firestore';
 import { headers } from 'next/headers';
 import { db } from '@/lib/firebase';
-import type { CartItem, Order, UserDetails, Product } from '@/lib/types';
+import type { CartItem, Order, UserDetails } from '@/lib/types';
 import { revalidatePath } from 'next/cache';
-
-// This is a type guard to check if an object is a Product.
-function isProduct(obj: any): obj is Product {
-  return obj && typeof obj.id === 'string' && typeof obj.name === 'string' && typeof obj.price === 'number';
-}
 
 export async function createOrder(userDetails: UserDetails, cart: CartItem[], total: number) {
   try {
@@ -19,23 +14,31 @@ export async function createOrder(userDetails: UserDetails, cart: CartItem[], to
     
     // Sanitize cart items for Firestore
     const sanitizedCartItems = cart.map(item => {
-      if (!isProduct(item.product)) {
-          throw new Error(`Invalid product data in cart item: ${item.id}`);
-      }
+       // Create a simplified product object for Firestore
+      const simplifiedProduct = {
+          id: item.product.id,
+          name: item.product.name,
+          price: item.product.price,
+          image: item.product.image,
+          category: item.product.category || 'N/A',
+      };
+      
+      // Calculate final item price including variants
+      const itemPrice = item.product.price + (item.selectedVariant?.priceModifier || 0);
+
       return {
-          ...item,
-          product: {
-              id: item.product.id,
-              name: item.product.name,
-              price: item.product.price,
-              image: item.product.image,
-              category: item.product.category || 'N/A',
-          }
+          id: item.id,
+          product: simplifiedProduct,
+          quantity: item.quantity,
+          pricePerItem: itemPrice, // Store the final price per item
+          selectedColor: item.selectedColor?.color || null,
+          selectedSize: item.selectedSize || null,
+          selectedVariant: item.selectedVariant?.name || null,
       };
     });
 
     // Create the initial order object
-    const orderData: Omit<Order, 'id'> = {
+    const orderData: Omit<Order, 'id' | 'orderDate'> & { orderDate: Timestamp } = {
       orderDate: Timestamp.now(),
       customer: {
         name: userDetails.name,
@@ -54,9 +57,11 @@ export async function createOrder(userDetails: UserDetails, cart: CartItem[], to
     
     revalidatePath('/admin/orders');
 
+    // Return a plain object that is compatible with the client
     const newOrder: Order = { 
         ...orderData, 
         id: docRef.id, 
+        // Convert Timestamp to a serializable Date for the client
         orderDate: orderData.orderDate.toDate() 
     };
 
@@ -67,6 +72,8 @@ export async function createOrder(userDetails: UserDetails, cart: CartItem[], to
 
   } catch (error) {
     console.error("Error creating order: ", error);
-    return { success: false, error: 'Failed to save the order to the database. Please try again.' };
+    // Ensure the error message is a string
+    const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred.';
+    return { success: false, error: `Failed to save the order to the database. Please try again. Details: ${errorMessage}` };
   }
 }
