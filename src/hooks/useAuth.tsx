@@ -15,7 +15,13 @@ import {
   onAuthStateChanged,
   signInWithPopup,
   GoogleAuthProvider,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  signInAnonymously,
   signOut,
+  setPersistence,
+  browserLocalPersistence,
+  inMemoryPersistence,
   User,
 } from "firebase/auth";
 import { app } from "@/lib/firebase";
@@ -24,7 +30,10 @@ import { useAppContext } from "@/context/AppContext";
 interface AuthContextType {
   user: User | null;
   loading: boolean;
-  signInWithGoogle: () => Promise<boolean>;
+  signInWithGoogle: () => Promise<{ success: boolean; error?: string }>;
+  signInWithEmail: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  createUserWithEmail: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  signInAnonymously: () => Promise<{ success: boolean; error?: string }>;
   signOutUser: () => Promise<void>;
 }
 
@@ -46,20 +55,49 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     });
     return () => unsubscribe();
   }, [setIsInitialLoading]);
-
-  const signInWithGoogle = useCallback(async (): Promise<boolean> => {
-    try {
-      await signInWithPopup(auth, googleProvider);
-      // onAuthStateChanged will handle the user state update.
-      // A successful popup resolution means success.
-      return true; 
-    } catch (error: any) {
-      if (error.code !== 'auth/popup-closed-by-user') {
-          console.error("Error signing in with Google: ", error);
-      }
-      // If the popup is closed or there's an error, it's a failure.
-      return false; 
+  
+  const handleAuthError = (error: any): string => {
+    console.error("Firebase Auth Error:", error);
+    switch (error.code) {
+        case 'auth/user-not-found':
+            return 'No user found with this email.';
+        case 'auth/wrong-password':
+            return 'Incorrect password. Please try again.';
+        case 'auth/email-already-in-use':
+            return 'This email is already registered.';
+        case 'auth/weak-password':
+            return 'Password should be at least 6 characters.';
+        case 'auth/popup-closed-by-user':
+            return 'Sign-in process was cancelled.';
+        default:
+            return 'An unexpected error occurred. Please try again.';
     }
+  };
+  
+  const performAuthAction = async (action: () => Promise<any>): Promise<{ success: boolean; error?: string }> => {
+    try {
+      await action();
+      return { success: true };
+    } catch (error) {
+      const errorMessage = handleAuthError(error);
+      return { success: false, error: errorMessage };
+    }
+  };
+
+  const setAuthPersistence = async (rememberMe: boolean) => {
+    await setPersistence(auth, rememberMe ? browserLocalPersistence : inMemoryPersistence);
+  };
+  
+  const signInWithGoogle = useCallback(() => performAuthAction(() => signInWithPopup(auth, googleProvider)), []);
+  
+  const signInAnonymously = useCallback(() => performAuthAction(() => signInAnonymously(auth)), []);
+
+  const signInWithEmail = useCallback((email: string, password: string) => {
+    return performAuthAction(() => signInWithEmailAndPassword(auth, email, password));
+  }, []);
+  
+  const createUserWithEmail = useCallback((email: string, password: string) => {
+    return performAuthAction(() => createUserWithEmailAndPassword(auth, email, password));
   }, []);
 
   const signOutUser = useCallback(async () => {
@@ -75,9 +113,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       user,
       loading,
       signInWithGoogle,
+      signInWithEmail,
+      createUserWithEmail,
+      signInAnonymously,
       signOutUser,
     }),
-    [user, loading, signInWithGoogle, signOutUser]
+    [user, loading, signInWithGoogle, signInWithEmail, createUserWithEmail, signInAnonymously, signOutUser]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
