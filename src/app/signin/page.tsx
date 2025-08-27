@@ -1,7 +1,8 @@
+
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,66 +20,71 @@ export default function SignInPage() {
     user,
     loading,
     signInWithGoogle,
-    signInAnonymously,
     checkIfUserExists,
     signInWithEmail,
     createUserWithEmail,
+    signInAnonymously,
   } = useAuth();
 
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { toast } = useToast();
-  const [isPending, startTransition] = useTransition();
-
+  
   const [step, setStep] = useState<AuthStep>("initial");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
+  const [isProcessing, setIsProcessing] = useState(false);
 
   useEffect(() => {
-    if (user && !loading) {
-      router.push("/admin");
+    if (!loading && user) {
+      const redirectUrl = searchParams.get('redirect') || '/admin';
+      router.push(redirectUrl);
     }
-  }, [user, loading, router]);
+  }, [user, loading, router, searchParams]);
+  
 
   const handleAuthAction = async (action: () => Promise<{ success: boolean; error?: string }>) => {
-    startTransition(async () => {
-      const { success, error } = await action();
-      if (!success && error) {
-        toast({
-          title: "Authentication Failed",
-          description: error,
-          variant: "destructive",
-        });
-      }
-    });
+    setIsProcessing(true);
+    const { success, error } = await action();
+    if (!success && error) {
+      toast({
+        title: "Authentication Failed",
+        description: error,
+        variant: "destructive",
+      });
+    }
+    // On success, the useEffect will handle redirection.
+    setIsProcessing(false);
   };
 
   const handleEmailSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (isLoading) return;
-
-    startTransition(async () => {
-      if (step === 'initial') {
-        const { exists, error } = await checkIfUserExists(email);
-        if (error) {
-          toast({ title: "Error", description: error, variant: "destructive" });
-        } else if (exists) {
-          setStep('enter_password');
-        } else {
-          setStep('enter_name');
-        }
-      } else if (step === 'enter_password') {
-        await handleAuthAction(() => signInWithEmail(email, password));
-      } else if (step === 'enter_name') {
-        await handleAuthAction(() => createUserWithEmail(email, password, name));
+    
+    setIsProcessing(true);
+    if (step === 'initial') {
+      const { exists, error } = await checkIfUserExists(email);
+      if (error) {
+        toast({ title: "Error", description: error, variant: "destructive" });
+      } else if (exists) {
+        setStep('enter_password');
+      } else {
+        setStep('enter_name');
       }
-    });
+    } else if (step === 'enter_password') {
+      await handleAuthAction(() => signInWithEmail(email, password));
+    } else if (step === 'enter_name') {
+      await handleAuthAction(() => createUserWithEmail(email, password, name));
+    }
+    setIsProcessing(false);
   };
+
 
   const handleGoogleSignIn = () => handleAuthAction(signInWithGoogle);
   const handleAnonymousSignIn = () => handleAuthAction(signInAnonymously);
 
-  const isLoading = loading || isPending;
+  const isLoading = loading || isProcessing;
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-background p-4">
@@ -100,7 +106,8 @@ export default function SignInPage() {
             variant="outline"
             className="w-full font-semibold text-lg h-12"
           >
-            <Chrome className="mr-3 h-5 w-5" /> Continue with Google
+            {isProcessing ? <Loader2 className="mr-3 h-5 w-5 animate-spin" /> : <Chrome className="mr-3 h-5 w-5" />}
+            Continue with Google
           </Button>
 
           <Button
@@ -109,7 +116,8 @@ export default function SignInPage() {
             variant="secondary"
             className="w-full font-semibold text-lg h-12"
           >
-            <User className="mr-3 h-5 w-5" /> Continue as Guest
+            {isProcessing ? <Loader2 className="mr-3 h-5 w-5 animate-spin" /> : <User className="mr-3 h-5 w-5" />}
+            Continue as Guest
           </Button>
         </div>
 
@@ -150,7 +158,7 @@ export default function SignInPage() {
               
               {step === 'enter_password' && (
                  <>
-                  <p className="text-center text-sm">Welcome back! Please enter your password.</p>
+                  <p className="text-center text-sm">Welcome back! Please enter your password for <span className="font-semibold">{email}</span>.</p>
                   <div className="relative">
                     <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                     <Input
@@ -170,7 +178,7 @@ export default function SignInPage() {
 
               {step === 'enter_name' && (
                 <>
-                   <p className="text-center text-sm">Looks like you're new here! Let's create your account.</p>
+                   <p className="text-center text-sm">Looks like you're new! Let's create your account.</p>
                    <div className="relative">
                     <UserPlus className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                     <Input

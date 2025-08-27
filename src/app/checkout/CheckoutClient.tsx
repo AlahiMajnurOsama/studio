@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import { useState, useRef, useTransition, useEffect } from "react";
@@ -7,8 +6,6 @@ import { useCart } from "@/hooks/useCart";
 import { useAuth } from "@/hooks/useAuth";
 import type { Order } from "@/lib/types";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import Image from "next/image";
@@ -20,9 +17,11 @@ import { format } from 'date-fns';
 import { createOrder } from "../actions";
 import { useToast } from "@/hooks/use-toast";
 import { useAppContext } from "@/context/AppContext";
+import { useRouter } from "next/navigation";
+import { Skeleton } from "@/components/ui/skeleton";
 
 
-type CheckoutStep = "initial" | "guest_form" | "payment" | "success";
+type CheckoutStep = "payment" | "success";
 
 // Use Omit to remove the Timestamp version of orderDate for client-side state
 type CompletedOrder = Omit<Order, 'orderDate'> & {
@@ -32,24 +31,28 @@ type CompletedOrder = Omit<Order, 'orderDate'> & {
 
 export default function CheckoutClient() {
   const { cart, subtotal, totalItems, clearCart } = useCart();
-  const { user, signInWithGoogle } = useAuth();
+  const { user, loading: authLoading } = useAuth();
+  const router = useRouter();
   const billRef = useRef<HTMLDivElement>(null);
   const [isPending, startTransition] = useTransition();
   const { toast } = useToast();
   const { setPageLoading } = useAppContext();
 
-  const [step, setStep] = useState<CheckoutStep>("initial");
+  const [step, setStep] = useState<CheckoutStep>("payment");
   const [completedOrder, setCompletedOrder] = useState<CompletedOrder | null>(null);
-  const [guestDetails, setGuestDetails] = useState({
-    name: "",
-    email: "",
-    phone: "",
-    address: "",
-  });
 
   useEffect(() => {
     setPageLoading(isPending);
   }, [isPending, setPageLoading]);
+
+  useEffect(() => {
+    if (!authLoading && !user) {
+      // Redirect to signin page if not logged in, but also pass a query param
+      // to let the signin page know where to redirect back to.
+      const redirectUrl = `/signin?redirect=/checkout`;
+      router.push(redirectUrl);
+    }
+  }, [authLoading, user, router]);
 
   const handleDownloadBill = async () => {
     const billElement = billRef.current;
@@ -78,6 +81,55 @@ export default function CheckoutClient() {
   };
 
 
+  const handleDemoPayment = () => {
+    if (!user) {
+        toast({
+            title: "Authentication Error",
+            description: "You must be logged in to place an order.",
+            variant: "destructive"
+        });
+        return;
+    }
+
+    startTransition(async () => {
+        const userDetails = {
+            name: user.displayName || 'N/A',
+            email: user.email || 'N/A',
+            phone: user.phoneNumber || 'N/A',
+            address: 'N/A' // Address is not stored in user object
+        };
+
+        const result = await createOrder(userDetails, cart, subtotal);
+        if (result.success && result.order) {
+            setCompletedOrder(result.order as CompletedOrder);
+            clearCart();
+            setStep("success");
+        } else {
+             toast({
+                title: "Order Failed",
+                description: result.error || "Something went wrong. Please try again.",
+                variant: "destructive"
+            });
+        }
+    });
+  };
+
+  if (authLoading || !user) {
+    return (
+       <div className="space-y-4">
+          <h1 className="text-4xl font-bold font-headline mb-8 tracking-tight text-center">Checkout</h1>
+          <div className="grid lg:grid-cols-2 lg:gap-12 space-y-8 lg:space-y-0">
+             <div className="lg:col-start-2">
+                <Skeleton className="h-64 w-full" />
+             </div>
+             <div className="lg:col-start-1 lg:row-start-1">
+                <Skeleton className="h-48 w-full" />
+             </div>
+          </div>
+       </div>
+    );
+  }
+
   if (cart.length === 0 && step !== "success") {
     return (
       <div className="text-center py-16 border-2 border-dashed rounded-lg">
@@ -93,79 +145,6 @@ export default function CheckoutClient() {
     );
   }
 
-  const handleGuestFormSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setStep("payment");
-  };
-
-  const handleDemoPayment = () => {
-    startTransition(async () => {
-        const result = await createOrder(guestDetails, cart, subtotal);
-        if (result.success && result.order) {
-            setCompletedOrder(result.order as CompletedOrder);
-            clearCart();
-            setStep("success");
-        } else {
-             toast({
-                title: "Order Failed",
-                description: result.error || "Something went wrong. Please try again.",
-                variant: "destructive"
-            });
-        }
-    });
-  };
-
-  const renderInitialStep = () => (
-    <Card className="max-w-md mx-auto">
-      <CardHeader>
-        <CardTitle>Checkout</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <p>How would you like to proceed?</p>
-        <Button className="w-full" size="lg" onClick={() => setStep("guest_form")}>
-          Checkout as Guest
-        </Button>
-        <Button className="w-full" size="lg" variant="outline" onClick={async () => {
-          const success = await signInWithGoogle();
-          if (success) setStep("payment");
-        }}>
-          Sign In & Checkout
-        </Button>
-      </CardContent>
-    </Card>
-  );
-
-  const renderGuestForm = () => (
-    <form onSubmit={handleGuestFormSubmit}>
-      <Card>
-        <CardHeader>
-          <CardTitle>Guest Details</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="name">Full Name</Label>
-            <Input id="name" required value={guestDetails.name} onChange={(e) => setGuestDetails({...guestDetails, name: e.target.value})} />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
-            <Input id="email" type="email" required value={guestDetails.email} onChange={(e) => setGuestDetails({...guestDetails, email: e.target.value})} />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="phone">Phone Number</Label>
-            <Input id="phone" type="tel" required value={guestDetails.phone} onChange={(e) => setGuestDetails({...guestDetails, phone: e.target.value})} />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="address">Shipping Address</Label>
-            <Input id="address" required placeholder="e.g. 123 Main St, Anytown, USA" value={guestDetails.address} onChange={(e) => setGuestDetails({...guestDetails, address: e.target.value})} />
-          </div>
-        </CardContent>
-        <CardFooter>
-          <Button type="submit" className="w-full" size="lg">Continue to Payment</Button>
-        </CardFooter>
-      </Card>
-    </form>
-  );
-
   const renderPaymentStep = () => (
     <div>
         <h2 className="text-2xl font-bold mb-4">Payment</h2>
@@ -175,6 +154,7 @@ export default function CheckoutClient() {
             </CardHeader>
             <CardContent>
                 <p>Please review your order and press the button below to complete your purchase using our demo payment system.</p>
+                <p className="text-sm text-muted-foreground mt-4">Logged in as: {user.displayName || user.email}</p>
             </CardContent>
             <CardFooter>
                 <Button className="w-full" size="lg" onClick={handleDemoPayment} disabled={isPending}>
@@ -324,8 +304,6 @@ export default function CheckoutClient() {
                 {renderOrderSummary()}
             </div>
             <div className="lg:col-start-1 lg:row-start-1">
-                {step === 'initial' && renderInitialStep()}
-                {step === 'guest_form' && renderGuestForm()}
                 {step === 'payment' && renderPaymentStep()}
             </div>
         </div>
