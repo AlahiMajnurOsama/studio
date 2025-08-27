@@ -1,68 +1,65 @@
+
 'use server';
 
 import { collection, addDoc, Timestamp, doc, updateDoc } from 'firebase/firestore';
 import { headers } from 'next/headers';
 import { db } from '@/lib/firebase';
-import type { CartItem, Order } from '@/lib/types';
+import type { CartItem, Order, UserDetails } from '@/lib/types';
 import { performFraudCheck } from '@/ai/flows/order-fraud-check';
 import { revalidatePath } from 'next/cache';
 
-interface GuestDetails {
-  name: string;
-  email: string;
-  phone: string;
-  address: string;
-}
-
-export async function createOrder(guestDetails: GuestDetails, cart: CartItem[], total: number) {
+export async function createOrder(userDetails: UserDetails, cart: CartItem[], total: number) {
   try {
     const headersList = headers();
-    const ipAddress = headersList.get('x-forwarded-for') || '127.0.0.1';
+    // Use 'x-forwarded-for' for production environments, fallback for local dev
+    const ipAddress = headersList.get('x-forwarded-for')?.split(',')[0].trim() || '127.0.0.1';
     
-    // 1. Create the order object with pending AI analysis
+    // 1. Create the initial order object with a pending analysis state
     const orderData: Omit<Order, 'id'> = {
       orderDate: Timestamp.now(),
       customer: {
-        name: guestDetails.name,
-        email: guestDetails.email,
-        phone: guestDetails.phone,
+        name: userDetails.name,
+        email: userDetails.email,
+        phone: userDetails.phone || 'N/A',
         ipAddress: ipAddress,
-        location: guestDetails.address,
+        location: 'N/A', // Address not collected in this flow
       },
       items: cart,
       total: total,
-      status: 'Completed', // Assuming demo payment is always successful
+      status: 'Completed', // Assume demo payment is always successful
       paymentMethod: 'Demo Payment',
       aiAnalysis: {
-        riskScore: -1, // Use -1 to indicate "Pending Analysis"
+        riskScore: -1, // -1 indicates "Pending Analysis"
         summary: 'Awaiting fraud analysis.',
         keyFactors: [],
       },
     };
 
-    // 2. Save the order to Firestore
+    // 2. Save the order to Firestore to get a unique ID
     const docRef = await addDoc(collection(db, 'orders'), orderData);
     
-    // 3. Revalidate the path to refresh the data on the admin panel
+    // 3. Immediately revalidate the admin orders page so the new order appears
+    // This provides a great real-time experience for the admin
     revalidatePath('/admin/orders');
 
-    // 4. Return the new order ID and the full order data
-    const newOrder = { 
+    // 4. Prepare the complete order data to return to the client
+    // We convert the Firestore Timestamp to a standard Date object for client-side use
+    const newOrder: Order = { 
         ...orderData, 
         id: docRef.id, 
-        // Convert Timestamp to a plain Date object for client-side state
         orderDate: orderData.orderDate.toDate() 
     };
 
+    // 5. Return a success response with the new order details
     return {
         success: true,
-        orderId: docRef.id,
-        order: newOrder
+        order: newOrder,
     };
 
   } catch (error) {
     console.error("Error creating order: ", error);
-    return { success: false, error: 'Failed to create order.' };
+    // Provide a generic but helpful error message
+    return { success: false, error: 'Failed to save the order to the database. Please try again.' };
   }
 }
 

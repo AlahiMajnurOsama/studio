@@ -1,3 +1,4 @@
+
 import type { Timestamp } from "firebase/firestore";
 
 export type ProductVariant = {
@@ -30,6 +31,12 @@ export type CartItem = {
   selectedColor?: ColorVariant | null;
   selectedSize?: string | null;
   selectedVariant?: ProductVariant | null;
+};
+
+export type UserDetails = {
+  name: string;
+  email: string;
+  phone: string | null;
 };
 
 export type Order = {
