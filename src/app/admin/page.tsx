@@ -80,21 +80,23 @@ export default function AdminDashboardPage() {
                     </CardContent>
                 </Card>
             </Link>
-
-             <Card className="border-dashed cursor-not-allowed">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">
-                        Customers (Coming Soon)
-                    </CardTitle>
-                    <Users className="h-5 w-5 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                    <div className="text-2xl font-bold text-muted-foreground/50">View Customers</div>
-                     <p className="text-xs text-muted-foreground">
-                        Manage customer information.
-                    </p>
-                </CardContent>
-            </Card>
+            
+            <Link href="/admin/users">
+                 <Card className="hover:border-primary hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">
+                            Customers
+                        </CardTitle>
+                        <Users className="h-5 w-5 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-2xl font-bold">Manage Users</div>
+                         <p className="text-xs text-muted-foreground">
+                            View and manage customer accounts.
+                        </p>
+                    </CardContent>
+                </Card>
+            </Link>
         </div>
     </div>
   );
