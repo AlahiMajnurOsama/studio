@@ -27,7 +27,7 @@ import {
 import { deleteUser, getAllUsers } from "./actions";
 
 export default function AdminUsersPage() {
-  const { user, loading: authLoading } = useAuth();
+  const { user, loading: authLoading, isAdmin } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
   const { setPageLoading } = useAppContext();
@@ -41,12 +41,18 @@ export default function AdminUsersPage() {
   }, [isPending, setPageLoading]);
 
   useEffect(() => {
-    if (!authLoading && !user) {
-      startTransition(() => {
-        router.push("/signin");
-      });
+    if (!authLoading) {
+      if (!user) {
+        startTransition(() => {
+          router.push("/signin");
+        });
+      } else if (!isAdmin) {
+        startTransition(() => {
+          router.push("/");
+        });
+      }
     }
-  }, [user, authLoading, router]);
+  }, [user, authLoading, isAdmin, router]);
 
   const fetchUsers = async () => {
     setLoading(true);
@@ -64,10 +70,10 @@ export default function AdminUsersPage() {
   };
 
   useEffect(() => {
-    if (user) {
+    if (user && isAdmin) {
       fetchUsers();
     }
-  }, [user]);
+  }, [user, isAdmin]);
 
   const handleDeleteUser = async (uid: string) => {
     const result = await deleteUser(uid);
@@ -86,7 +92,7 @@ export default function AdminUsersPage() {
     }
   };
   
-   if (authLoading || !user) {
+   if (authLoading || !user || !isAdmin) {
     return (
       <div className="container mx-auto px-4 py-8">
          <div className="flex justify-center items-center h-screen">
@@ -132,7 +138,7 @@ export default function AdminUsersPage() {
                 <div className="flex justify-end">
                     <AlertDialog>
                         <AlertDialogTrigger asChild>
-                           <Button variant="destructive" size="icon">
+                           <Button variant="destructive" size="icon" disabled={user?.uid === appUser.uid}>
                                 <Trash2 className="h-4 w-4" />
                            </Button>
                         </AlertDialogTrigger>

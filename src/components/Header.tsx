@@ -145,7 +145,7 @@ const SearchBar = () => {
 
 
 const UserProfileButton = () => {
-    const { user, signOutUser } = useAuth();
+    const { user, signOutUser, isAdmin } = useAuth();
     const router = useRouter();
     const { setPageLoading } = useAppContext();
     const [isPending, startTransition] = useTransition();
@@ -190,10 +190,12 @@ const UserProfileButton = () => {
                       <LayoutDashboard className="mr-2 h-4 w-4" />
                       <span>My Dashboard</span>
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => handleNav('/admin')}>
-                      <Shield className="mr-2 h-4 w-4" />
-                      <span>Admin Panel</span>
-                    </DropdownMenuItem>
+                    {isAdmin && (
+                      <DropdownMenuItem onClick={() => handleNav('/admin')}>
+                        <Shield className="mr-2 h-4 w-4" />
+                        <span>Admin Panel</span>
+                      </DropdownMenuItem>
+                    )}
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={handleSignOut}>
                         <LogOut className="mr-2 h-4 w-4" />

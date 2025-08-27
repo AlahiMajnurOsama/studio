@@ -25,9 +25,12 @@ import {
 import { app } from "@/lib/firebase";
 import { useAppContext } from "@/context/AppContext";
 
+const ADMIN_EMAILS = ['ra726ma@gmail.com', 'mrash541@gmail.com'];
+
 interface AuthContextType {
   user: User | null;
   loading: boolean;
+  isAdmin: boolean;
   signInWithGoogle: () => Promise<{ success: boolean; error?: string }>;
   signInWithEmail: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   createUserWithEmail: (email: string, password: string, displayName: string) => Promise<{ success: boolean; error?: string }>;
@@ -43,10 +46,12 @@ const googleProvider = new GoogleAuthProvider();
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const { isInitialLoading, setIsInitialLoading } = useAppContext();
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setUser(user);
+      setIsAdmin(user ? ADMIN_EMAILS.includes(user.email || "") : false);
       if (isInitialLoading) {
         setIsInitialLoading(false);
       }
@@ -115,13 +120,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     () => ({
       user,
       loading: isInitialLoading,
+      isAdmin,
       signInWithGoogle,
       signInWithEmail,
       createUserWithEmail,
       signInAnonymously,
       signOutUser,
     }),
-    [user, isInitialLoading, signInWithGoogle, signInWithEmail, createUserWithEmail, signInAnonymously, signOutUser]
+    [user, isInitialLoading, isAdmin, signInWithGoogle, signInWithEmail, createUserWithEmail, signInAnonymously, signOutUser]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
@@ -134,5 +140,3 @@ export const useAuth = (): AuthContextType => {
   }
   return context;
 };
-
-    

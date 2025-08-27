@@ -12,7 +12,7 @@ import { useAppContext } from "@/context/AppContext";
 
 
 export default function AdminDashboardPage() {
-  const { user, loading: authLoading } = useAuth();
+  const { user, loading: authLoading, isAdmin } = useAuth();
   const router = useRouter();
   const { setPageLoading } = useAppContext();
   const [isPending, startTransition] = useTransition();
@@ -22,15 +22,21 @@ export default function AdminDashboardPage() {
   }, [isPending, setPageLoading]);
 
   useEffect(() => {
-    if (!authLoading && !user) {
-      startTransition(() => {
-        router.push("/signin");
-      });
+    if (!authLoading) {
+      if (!user) {
+        startTransition(() => {
+          router.push("/signin");
+        });
+      } else if (!isAdmin) {
+        startTransition(() => {
+          router.push("/");
+        });
+      }
     }
-  }, [user, authLoading, router]);
+  }, [user, authLoading, isAdmin, router]);
 
 
-  if (authLoading || !user) {
+  if (authLoading || !user || !isAdmin) {
     return (
       <div className="container mx-auto px-4 py-8">
          <div className="flex justify-center items-center h-screen">

@@ -16,7 +16,7 @@ import OrderCard from "./OrderCard";
 import { useAppContext } from "@/context/AppContext";
 
 export default function AdminOrdersPage() {
-  const { user, loading: authLoading } = useAuth();
+  const { user, loading: authLoading, isAdmin } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
   const [orders, setOrders] = useState<Order[]>([]);
@@ -29,16 +29,22 @@ export default function AdminOrdersPage() {
   }, [isPending, setPageLoading]);
   
   useEffect(() => {
-    if (!authLoading && !user) {
-      startTransition(() => {
-        router.push("/signin");
-      });
+     if (!authLoading) {
+      if (!user) {
+        startTransition(() => {
+          router.push("/signin");
+        });
+      } else if (!isAdmin) {
+        startTransition(() => {
+          router.push("/");
+        });
+      }
     }
-  }, [user, authLoading, router]);
+  }, [user, authLoading, isAdmin, router]);
 
 
   useEffect(() => {
-    if (user) {
+    if (user && isAdmin) {
       const q = query(collection(db, "orders"), orderBy("orderDate", "desc"));
       
       const unsubscribe = onSnapshot(q, (querySnapshot) => {
@@ -60,9 +66,9 @@ export default function AdminOrdersPage() {
       // Cleanup subscription on unmount
       return () => unsubscribe();
     }
-  }, [user, toast]);
+  }, [user, isAdmin, toast]);
 
-  if (authLoading || !user) {
+  if (authLoading || !user || !isAdmin) {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="flex justify-center items-center h-screen">
