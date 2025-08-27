@@ -17,7 +17,7 @@ import {
   GoogleAuthProvider,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
-  signInAnonymously,
+  signInAnonymously as firebaseSignInAnonymously,
   signOut,
   updateProfile,
   User,
@@ -65,22 +65,29 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return () => unsubscribe();
   }, [isInitialLoading, setIsInitialLoading]);
   
-  const handleAuthError = (error: any): string => {
+  const handleAuthError = (error: any): { message: string, code: string } => {
     console.error("Firebase Auth Error:", error);
+    const code = error.code || 'unknown';
+    let message = 'An unexpected error occurred. Please try again.';
+
     switch (error.code) {
         case 'auth/user-not-found':
-            return 'No user found with this email. Please sign up.';
+            message = 'No user found with this email. Please sign up.';
+            break;
         case 'auth/wrong-password':
-            return 'Incorrect password. Please try again.';
+            message = 'Incorrect password. Please try again.';
+            break;
         case 'auth/email-already-in-use':
-            return 'This email is already registered. Please sign in.';
+            message = 'This email is already registered. Please sign in.';
+            break;
         case 'auth/weak-password':
-            return 'Password should be at least 6 characters.';
+            message = 'Password should be at least 6 characters.';
+            break;
         case 'auth/popup-closed-by-user':
-            return 'Sign-in process was cancelled.';
-        default:
-            return 'An unexpected error occurred. Please try again.';
+            message = 'Sign-in process was cancelled.';
+            break;
     }
+    return { message, code };
   };
   
   const performAuthAction = async (action: () => Promise<any>): Promise<{ success: boolean; error?: string }> => {
@@ -88,8 +95,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       await action();
       return { success: true };
     } catch (error) {
-      const errorMessage = handleAuthError(error);
-      return { success: false, error: errorMessage };
+      const { message, code } = handleAuthError(error);
+      // Don't show a toast for user-cancelled popups
+      if (code === 'auth/popup-closed-by-user') {
+        return { success: false }; // Return success: false but no error message
+      }
+      return { success: false, error: message };
     }
   };
   
@@ -98,7 +109,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const signInAnonymously = useCallback(async () => {
-     return await performAuthAction(() => signInAnonymously(auth));
+     return await performAuthAction(() => firebaseSignInAnonymously(auth));
   }, []);
   
   const signInWithEmail = useCallback(async (email: string, password: string) => {
