@@ -61,8 +61,10 @@ export default function SignInPage() {
     if (isLoading) return;
     
     setIsProcessing(true);
+    const lowerCaseEmail = email.toLowerCase();
+
     if (step === 'initial') {
-      const { exists, error } = await checkIfUserExists(email);
+      const { exists, error } = await checkIfUserExists(lowerCaseEmail);
       if (error) {
         toast({ title: "Error", description: error, variant: "destructive" });
       } else if (exists) {
@@ -71,9 +73,9 @@ export default function SignInPage() {
         setStep('enter_name');
       }
     } else if (step === 'enter_password') {
-      await handleAuthAction(() => signInWithEmail(email, password));
+      await handleAuthAction(() => signInWithEmail(lowerCaseEmail, password));
     } else if (step === 'enter_name') {
-      await handleAuthAction(() => createUserWithEmail(email, password, name));
+      await handleAuthAction(() => createUserWithEmail(lowerCaseEmail, password, name));
     }
     setIsProcessing(false);
   };

@@ -94,7 +94,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   
   const checkIfUserExists = useCallback(async (email: string) => {
     try {
-      const methods = await fetchSignInMethodsForEmail(auth, email);
+      const methods = await fetchSignInMethodsForEmail(auth, email.toLowerCase());
       return { exists: methods.length > 0, error: undefined };
     } catch (error) {
        const errorMessage = handleAuthError(error);
@@ -103,12 +103,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const signInWithEmail = useCallback(async (email: string, password: string) => {
-    return await performAuthAction(() => signInWithEmailAndPassword(auth, email, password));
+    return await performAuthAction(() => signInWithEmailAndPassword(auth, email.toLowerCase(), password));
   }, []);
 
   const createUserWithEmail = useCallback(async (email: string, password: string, displayName: string) => {
       const authResult = await performAuthAction(async () => {
-        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        const userCredential = await createUserWithEmailAndPassword(auth, email.toLowerCase(), password);
         if (userCredential.user) {
             await updateProfile(userCredential.user, { displayName });
         }
