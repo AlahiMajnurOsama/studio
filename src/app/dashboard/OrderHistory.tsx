@@ -24,15 +24,22 @@ export default function OrderHistory({ userEmail }: OrderHistoryProps) {
 
       setLoading(true);
       try {
+        // Query for orders matching the user's email
         const q = query(
           collection(db, "orders"),
-          where("customer.email", "==", userEmail),
-          orderBy("orderDate", "desc")
+          where("customer.email", "==", userEmail)
         );
         const querySnapshot = await getDocs(q);
-        const ordersData = querySnapshot.docs.map(
-          (doc) => ({ ...doc.data(), id: doc.id }) as Order
-        );
+        
+        // Map and sort the documents client-side
+        const ordersData = querySnapshot.docs
+          .map((doc) => ({ ...doc.data(), id: doc.id }) as Order)
+          .sort((a, b) => {
+            const dateA = a.orderDate instanceof Date ? a.orderDate.getTime() : a.orderDate.toMillis();
+            const dateB = b.orderDate instanceof Date ? b.orderDate.getTime() : b.orderDate.toMillis();
+            return dateB - dateA; // Sort descending
+          });
+
         setOrders(ordersData);
       } catch (error) {
         console.error("Error fetching user orders: ", error);
