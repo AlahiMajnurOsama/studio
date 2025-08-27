@@ -44,17 +44,17 @@ const googleProvider = new GoogleAuthProvider();
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
-  const { setIsInitialLoading } = useAppContext();
+  const { isInitialLoading, setIsInitialLoading } = useAppContext();
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setUser(user);
-      setLoading(false);
-      setIsInitialLoading(false);
+      if (isInitialLoading) {
+        setIsInitialLoading(false);
+      }
     });
     return () => unsubscribe();
-  }, [setIsInitialLoading]);
+  }, [isInitialLoading, setIsInitialLoading]);
   
   const handleAuthError = (error: any): string => {
     console.error("Firebase Auth Error:", error);
@@ -111,14 +111,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const value = useMemo(
     () => ({
       user,
-      loading,
+      loading: isInitialLoading,
       signInWithGoogle,
       signInWithEmail,
       createUserWithEmail,
       signInAnonymously,
       signOutUser,
     }),
-    [user, loading, signInWithGoogle, signInWithEmail, createUserWithEmail, signInAnonymously, signOutUser]
+    [user, isInitialLoading, signInWithGoogle, signInWithEmail, createUserWithEmail, signInAnonymously, signOutUser]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
