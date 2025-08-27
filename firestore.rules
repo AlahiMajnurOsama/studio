@@ -1,24 +1,21 @@
 rules_version = '2';
-
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Products can be read by anyone for browsing the store
+    // Products can be read by anyone
     match /products/{productId} {
       allow read: if true;
       // Products can only be written/deleted by authenticated users (admins)
       allow write, delete: if request.auth != null;
     }
 
-    // Orders collection rules
+    // Orders can be created by anyone to allow for guest checkout.
+    // However, only authenticated users (admins) can read, update, or delete them.
     match /orders/{orderId} {
-      // ANYONE can create an order (for guest checkout)
       allow create: if true;
-      // ONLY authenticated users can read, update, or delete orders (for admin panel)
       allow read, update, delete: if request.auth != null;
     }
     
-    // Fallback for any other collections
-    // By default, require authentication for any other data access
+    // Fallback for any other collections: only authenticated users can access.
     match /{document=**} {
       allow read, write: if request.auth != null;
     }
