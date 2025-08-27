@@ -19,7 +19,7 @@ export default function SignInPage() {
     setPageLoading(isPending);
   }, [isPending, setPageLoading]);
   
-  // This effect handles redirection if a user is already logged in
+  // This effect handles redirection if a user is already logged in or logs in successfully
   useEffect(() => {
     if (!authLoading && user) {
       startTransition(() => {
@@ -30,15 +30,8 @@ export default function SignInPage() {
   
   const handleSignIn = async () => {
     setIsSigningIn(true);
-    await signInWithGoogle((user) => {
-      // This callback runs immediately on successful sign-in
-      if (user) {
-        startTransition(() => {
-          router.push("/admin");
-        });
-      }
-    });
-    // Set signing in to false to re-enable the button in case of failure/popup close.
+    await signInWithGoogle();
+    // After the popup closes, the useEffect above will catch the user change and redirect.
     setIsSigningIn(false);
   };
 

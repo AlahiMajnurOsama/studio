@@ -24,7 +24,7 @@ import { useAppContext } from "@/context/AppContext";
 interface AuthContextType {
   user: User | null;
   loading: boolean;
-  signInWithGoogle: (onUser?: (user: User) => void) => Promise<boolean>;
+  signInWithGoogle: () => Promise<boolean>;
   signOutUser: () => Promise<void>;
 }
 
@@ -47,14 +47,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return () => unsubscribe();
   }, [setIsInitialLoading]);
 
-  const signInWithGoogle = useCallback(async (onUser?: (user: User) => void) => {
+  const signInWithGoogle = useCallback(async () => {
     try {
       const result = await signInWithPopup(auth, googleProvider);
-      if (result.user) {
-        onUser?.(result.user);
-        return true;
-      }
-      return false;
+      return !!result.user;
     } catch (error: any) {
       if (error.code !== 'auth/popup-closed-by-user') {
           console.error("Error signing in with Google: ", error);
