@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
@@ -231,8 +232,8 @@ export default function Home() {
             {loading ? (
               Array.from({ length: 8 }).map((_, i) => <Skeleton key={i} className="h-96 w-full" />)
             ) : (
-              filteredProducts.map((product) => (
-                <ProductCard key={product.id} product={product} />
+              filteredProducts.map((product, index) => (
+                <ProductCard key={`${product.id}-${index}`} product={product} />
               ))
             )}
           </div>
