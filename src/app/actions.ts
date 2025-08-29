@@ -14,7 +14,7 @@ export async function createOrder(userDetails: UserDetails, cart: CartItem[], to
     
     // Sanitize cart items for Firestore
     const sanitizedCartItems = cart.map(item => {
-       // Create a simplified product object for Firestore
+      // Create a simplified product object to avoid storing the full product data
       const simplifiedProduct = {
           id: item.product.id,
           name: item.product.name,
@@ -22,15 +22,13 @@ export async function createOrder(userDetails: UserDetails, cart: CartItem[], to
           image: item.product.image,
           category: item.product.category || 'N/A',
       };
-      
-      // Calculate final item price including variants
-      const itemPrice = item.product.price + (item.selectedVariant?.priceModifier || 0);
 
+      // The pricePerItem now comes directly from the cart item, which is reliable
       return {
           id: item.id,
           product: simplifiedProduct,
           quantity: item.quantity,
-          pricePerItem: itemPrice, // Store the final price per item
+          pricePerItem: item.pricePerItem, 
           selectedColor: item.selectedColor?.color || null,
           selectedSize: item.selectedSize || null,
           selectedVariant: item.selectedVariant?.name || null,

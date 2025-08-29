@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
@@ -49,6 +50,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     selectedVariant: ProductVariant | null = null
   ) => {
     const cartItemId = `${product.id}-${selectedColor?.color || 'default'}-${selectedSize || 'default'}-${selectedVariant?.name || 'default'}`;
+    const pricePerItem = product.price + (selectedVariant?.priceModifier || 0);
 
     setCart(prevCart => {
       const existingItem = prevCart.find(item => item.id === cartItemId);
@@ -67,6 +69,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
           selectedColor,
           selectedSize,
           selectedVariant,
+          pricePerItem, // <-- This was the missing field
         };
         return [...prevCart, newItem];
       }
@@ -111,8 +114,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const subtotal = useMemo(() => {
     return cart.reduce((total, item) => {
-      const itemPrice = item.product.price + (item.selectedVariant?.priceModifier || 0);
-      return total + (itemPrice * item.quantity);
+      return total + (item.pricePerItem * item.quantity);
     }, 0);
   }, [cart]);
 
