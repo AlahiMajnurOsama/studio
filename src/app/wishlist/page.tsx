@@ -3,8 +3,7 @@
 
 import { useEffect, useState, useTransition } from "react";
 import { useWishlist } from "@/hooks/useWishlist";
-import { db } from "@/lib/firebase";
-import { collection, getDocs, query, where, documentId } from "firebase/firestore";
+import { products as allProducts } from "@/lib/data";
 import type { Product } from "@/lib/types";
 import ProductCard from "@/components/ProductCard";
 import Link from "next/link";
@@ -32,17 +31,12 @@ export default function WishlistPage() {
       }
 
       setLoading(true);
-      try {
-        const productsRef = collection(db, "products");
-        const q = query(productsRef, where(documentId(), "in", wishlist));
-        const querySnapshot = await getDocs(q);
-        const productsData = querySnapshot.docs.map(doc => doc.data() as Product);
+      // Simulate API call
+      setTimeout(() => {
+        const productsData = allProducts.filter(p => wishlist.includes(p.id));
         setWishlistedProducts(productsData);
-      } catch (error) {
-        console.error("Error fetching wishlisted products: ", error);
-      } finally {
         setLoading(false);
-      }
+      }, 300);
     };
 
     fetchWishlistedProducts();

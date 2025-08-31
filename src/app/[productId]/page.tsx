@@ -1,6 +1,5 @@
-import { collection, doc, getDoc, getDocs, query, where, limit } from "firebase/firestore";
-import { db } from "@/lib/firebase";
 import type { Product } from "@/lib/types";
+import { products as allProducts } from "@/lib/data";
 import { notFound } from "next/navigation";
 import ProductDetailsClient from "./ProductDetailsClient";
 import ProductCard from "@/components/ProductCard";
@@ -8,30 +7,15 @@ import ProductCard from "@/components/ProductCard";
 export const dynamic = 'force-dynamic';
 
 async function getProduct(productId: string): Promise<Product | null> {
-  const docRef = doc(db, "products", productId);
-  const docSnap = await getDoc(docRef);
-  if (docSnap.exists()) {
-    return { ...docSnap.data(), id: docSnap.id } as Product;
-  }
-  return null;
+  const product = allProducts.find(p => p.id === productId);
+  return product ? product : null;
 }
 
 async function getRelatedProducts(product: Product): Promise<Product[]> {
     if (!product.category) return [];
     
-    // Fetch 5 products of the same category
-    const q = query(
-        collection(db, "products"), 
-        where("category", "==", product.category),
-        limit(5)
-    );
-    
-    const querySnapshot = await getDocs(q);
-    
-    // Filter out the current product from the results and take the first 4
-    return querySnapshot.docs
-        .map(doc => ({ ...doc.data(), id: doc.id }) as Product)
-        .filter(p => p.id !== product.id)
+    return allProducts
+        .filter(p => p.category === product.category && p.id !== product.id)
         .slice(0, 4);
 }
 

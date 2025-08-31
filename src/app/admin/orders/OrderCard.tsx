@@ -46,7 +46,7 @@ const DetailRow = ({ label, value, canCopy = false }: { label: string; value?: s
 
 export default function OrderCard({ order }: OrderCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
-  const orderDate = order.orderDate.toDate ? order.orderDate.toDate() : new Date(order.orderDate as any);
+  const orderDate = new Date(order.orderDate);
 
   return (
     <Card>

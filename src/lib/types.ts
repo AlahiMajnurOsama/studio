@@ -1,6 +1,4 @@
 
-import type { Timestamp } from "firebase/firestore";
-
 export type ProductVariant = {
   name: string;
   priceModifier?: number;
@@ -42,7 +40,7 @@ export type UserDetails = {
 
 export type Order = {
   id: string;
-  orderDate: Timestamp | Date;
+  orderDate: Date;
   customer: {
     name: string;
     email: string;

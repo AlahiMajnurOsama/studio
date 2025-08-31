@@ -3,8 +3,7 @@
 
 import { useEffect, useState, useMemo } from "react";
 import type { Product } from "@/lib/types";
-import { db } from "@/lib/firebase";
-import { collection, getDocs } from "firebase/firestore";
+import { products as localProducts } from "@/lib/data";
 import ProductCard from "@/components/ProductCard";
 import {
   Select,
@@ -16,7 +15,6 @@ import {
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { X, ChevronRight } from "lucide-react";
-import ProductRecommendations from "@/components/ProductRecommendations";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import Link from "next/link";
@@ -45,18 +43,11 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        const querySnapshot = await getDocs(collection(db, "products"));
-        const productsData = querySnapshot.docs.map(doc => doc.data() as Product);
-        setProducts(productsData);
-      } catch (error) {
-        console.error("Error fetching products from Firestore: ", error);
-      } finally {
+    // Simulate fetching data
+    setTimeout(() => {
+        setProducts(localProducts);
         setLoading(false);
-      }
-    };
-    fetchProducts();
+    }, 500);
   }, []);
 
   const allCategories = useMemo(() => Array.from(new Set(products.map((p) => p.category))), [products]);
@@ -246,8 +237,6 @@ export default function Home() {
           )}
         </main>
       </div>
-
-      <ProductRecommendations allProducts={products} />
     </div>
   );
 }

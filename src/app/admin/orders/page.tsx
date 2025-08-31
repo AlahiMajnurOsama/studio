@@ -4,8 +4,6 @@
 import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
-import { db } from "@/lib/firebase";
-import { collection, query, orderBy, onSnapshot } from "firebase/firestore";
 import type { Order } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
@@ -14,11 +12,49 @@ import { Skeleton } from "@/components/ui/skeleton";
 import Link from "next/link";
 import OrderCard from "./OrderCard";
 import { useAppContext } from "@/context/AppContext";
+import { products as allProducts } from "@/lib/data";
+
+const generateMockOrders = (): Order[] => {
+    const getRandomItems = () => {
+        const numItems = Math.floor(Math.random() * 3) + 1;
+        const shuffled = [...allProducts].sort(() => 0.5 - Math.random());
+        return shuffled.slice(0, numItems).map(product => ({
+            id: product.id,
+            product,
+            quantity: Math.floor(Math.random() * 2) + 1,
+            pricePerItem: product.price,
+        }));
+    };
+
+    const mockOrders: Omit<Order, 'id'>[] = [
+        {
+            orderDate: new Date('2024-05-20T10:30:00Z'),
+            customer: { name: 'Alice Johnson', email: 'alice@example.com', phone: '123-456-7890', ipAddress: '192.168.1.1', location: 'New York, USA' },
+            items: getRandomItems(),
+            total: 285.49, status: 'Completed', paymentMethod: 'Credit Card',
+        },
+        {
+            orderDate: new Date('2024-05-21T14:00:00Z'),
+            customer: { name: 'Bob Smith', email: 'bob@example.com', phone: '987-654-3210', ipAddress: '10.0.0.1', location: 'London, UK' },
+            items: getRandomItems(),
+            total: 120.00, status: 'Pending', paymentMethod: 'PayPal',
+        },
+    ];
+
+    return mockOrders.map((order, index) => {
+        const total = order.items.reduce((sum, item) => sum + (item.product.price * item.quantity), 0);
+        return {
+            ...order,
+            id: `mock_order_${index + 1}`,
+            total: total
+        }
+    });
+};
+
 
 export default function AdminOrdersPage() {
   const { user, loading: authLoading, isAdmin } = useAuth();
   const router = useRouter();
-  const { toast } = useToast();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const { setPageLoading } = useAppContext();
@@ -34,41 +70,24 @@ export default function AdminOrdersPage() {
         startTransition(() => {
           router.push("/signin");
         });
-      } else if (!isAdmin) {
-        startTransition(() => {
-          router.push("/");
-        });
       }
     }
-  }, [user, authLoading, isAdmin, router]);
+  }, [user, authLoading, router]);
 
 
   useEffect(() => {
-    if (user && isAdmin) {
-      const q = query(collection(db, "orders"), orderBy("orderDate", "desc"));
-      
-      const unsubscribe = onSnapshot(q, (querySnapshot) => {
-        const ordersData = querySnapshot.docs.map(
-          (doc) => ({ ...doc.data(), id: doc.id }) as Order
-        );
-        setOrders(ordersData);
+    if (user) {
+      setLoading(true);
+      // Simulate fetching data
+      setTimeout(() => {
+        const mockData = generateMockOrders();
+        setOrders(mockData);
         setLoading(false);
-      }, (error) => {
-        console.error("Error fetching orders in real-time: ", error);
-        toast({
-          title: "Error",
-          description: "Failed to fetch transactions. You may need to create the collection first.",
-          variant: "destructive",
-        });
-        setLoading(false);
-      });
-
-      // Cleanup subscription on unmount
-      return () => unsubscribe();
+      }, 500);
     }
-  }, [user, isAdmin, toast]);
+  }, [user]);
 
-  if (authLoading || !user || !isAdmin) {
+  if (authLoading || !user) {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="flex justify-center items-center h-screen">
@@ -107,7 +126,7 @@ export default function AdminOrdersPage() {
          <div className="text-center py-16 border-2 border-dashed rounded-lg">
             <h2 className="text-2xl font-semibold mb-2">No transactions found</h2>
             <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-              Looks like there are no transactions in your database yet. Once a customer completes a checkout, the transaction will appear here in real-time.
+              This is a demo environment. Transactions will appear here once a backend is connected.
             </p>
         </div>
       )}

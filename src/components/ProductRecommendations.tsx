@@ -1,16 +1,16 @@
+
 "use client";
 
 import { useEffect, useState } from "react";
 import ProductCard from "./ProductCard";
 import type { Product } from "@/lib/types";
-import { getProductRecommendations } from "@/ai/flows/product-recommendations";
 import { Loader } from "./ui/loader";
 
 const BROWSING_HISTORY_KEY = "chromashop_browsing_history";
 
 export default function ProductRecommendations({ allProducts }: { allProducts: Product[] }) {
   const [recommendations, setRecommendations] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [browsingHistory, setBrowsingHistory] = useState<string[]>([]);
 
   useEffect(() => {
@@ -20,36 +20,25 @@ export default function ProductRecommendations({ allProducts }: { allProducts: P
       setBrowsingHistory(history);
     } catch (error) {
       console.error("Failed to get browsing history", error);
-      setLoading(false);
     }
   }, []);
-
+  
+  // This is a mock recommendation logic.
+  // In a real app, you would fetch this from an AI service.
   useEffect(() => {
     if (browsingHistory.length === 0 || allProducts.length === 0) {
-      setLoading(false);
       return;
     }
-
-    const fetchRecommendations = async () => {
-      try {
-        setLoading(true);
-        const result = await getProductRecommendations({ browsingHistory });
-        
-        const recommendedProducts = result.recommendations
-          .filter(id => !browsingHistory.includes(id))
-          .map(id => allProducts.find(p => p.id === id))
-          .filter((p): p is Product => p !== undefined)
-          .slice(0, 4); 
-
-        setRecommendations(recommendedProducts);
-      } catch (error) {
-        console.error("Error fetching recommendations:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchRecommendations();
+    
+    setLoading(true);
+    setTimeout(() => {
+      const recommendedProducts = allProducts
+        .filter(p => !browsingHistory.includes(p.id)) // Exclude viewed items
+        .sort(() => 0.5 - Math.random()) // Shuffle
+        .slice(0, 4);
+      setRecommendations(recommendedProducts);
+      setLoading(false);
+    }, 700);
   }, [browsingHistory, allProducts]);
 
   if (loading) {

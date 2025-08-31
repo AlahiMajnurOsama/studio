@@ -4,9 +4,8 @@
 import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
-import { db } from "@/lib/firebase";
-import { collection, getDocs, doc, deleteDoc, setDoc } from "firebase/firestore";
 import type { Product } from "@/lib/types";
+import { products as localProducts } from "@/lib/data";
 import { Button } from "@/components/ui/button";
 import { PlusCircle, Edit, Trash2, ArrowLeft, MoreVertical } from "lucide-react";
 import {
@@ -27,12 +26,6 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
 import ProductForm from "../ProductForm";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -61,39 +54,24 @@ export default function AdminProductsPage() {
         startTransition(() => {
           router.push("/signin");
         });
-      } else if (!isAdmin) {
-        startTransition(() => {
-          router.push("/");
-        });
       }
     }
-  }, [user, authLoading, isAdmin, router]);
+  }, [user, authLoading, router]);
 
-  const fetchProducts = async () => {
+  const fetchProducts = () => {
     setLoading(true);
-    try {
-      const querySnapshot = await getDocs(collection(db, "products"));
-      const productsData = querySnapshot.docs.map(
-        (doc) => ({ ...doc.data(), id: doc.id }) as Product
-      );
-      setProducts(productsData);
-    } catch (error) {
-      console.error("Error fetching products: ", error);
-      toast({
-        title: "Error",
-        description: "Failed to fetch products.",
-        variant: "destructive",
-      });
-    } finally {
+    // Simulate fetching from a local source
+    setTimeout(() => {
+      setProducts(localProducts);
       setLoading(false);
-    }
+    }, 300);
   };
 
   useEffect(() => {
-    if (user && isAdmin) {
+    if (user) {
       fetchProducts();
     }
-  }, [user, isAdmin]);
+  }, [user]);
 
   const handleAddProduct = () => {
     setEditingProduct(null);
@@ -105,49 +83,21 @@ export default function AdminProductsPage() {
     setIsDialogOpen(true);
   };
 
-  const handleDeleteProduct = async (productId: string) => {
-    try {
-      await deleteDoc(doc(db, "products", productId));
-      toast({ title: "Product deleted successfully!" });
-      fetchProducts(); // Refresh list
-    } catch (error) {
-      console.error("Error deleting product: ", error);
-      toast({
-        title: "Error",
-        description: "Failed to delete product.",
-        variant: "destructive",
-      });
-    }
+  const handleDeleteProduct = (productId: string) => {
+    // This is a mock delete. In a real app, you'd update the state.
+    toast({ title: "Product deleted (Demo)!", description: "In a real app, this product would be removed." });
   };
 
-  const handleFormSubmit = async (values: Omit<Product, "id" | "popularity">, id?: string) => {
-    const productId = id || doc(collection(db, "products")).id;
-    const popularity = editingProduct?.popularity || Math.floor(Math.random() * 31) + 70; // 70-100
-
-    const productData: Product = {
-      ...values,
-      id: productId,
-      popularity,
-    };
-
-    try {
-      await setDoc(doc(db, "products", productId), productData, { merge: true });
-      toast({
-        title: `Product ${id ? "updated" : "added"} successfully!`,
-      });
-      setIsDialogOpen(false);
-      fetchProducts(); // Refresh list
-    } catch (error) {
-      console.error("Error saving product: ", error);
-      toast({
-        title: "Error",
-        description: "Failed to save product.",
-        variant: "destructive",
-      });
-    }
+  const handleFormSubmit = (values: Omit<Product, "id" | "popularity">, id?: string) => {
+    const action = id ? "updated" : "added";
+    toast({
+      title: `Product ${action} (Demo)!`,
+      description: "This is a frontend demo. No data was saved.",
+    });
+    setIsDialogOpen(false);
   };
 
-  if (authLoading || !user || !isAdmin) {
+  if (authLoading || !user) {
     return (
       <div className="container mx-auto px-4 py-8">
          <div className="flex justify-center items-center h-screen">

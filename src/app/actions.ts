@@ -1,66 +1,31 @@
 
 'use server';
 
-import { collection, addDoc, Timestamp } from 'firebase/firestore';
-import { headers } from 'next/headers';
-import { db } from '@/lib/firebase';
 import type { CartItem, Order, UserDetails } from '@/lib/types';
-import { revalidatePath } from 'next/cache';
 
+// Mock function to simulate creating an order
 export async function createOrder(userDetails: UserDetails, cart: CartItem[], total: number) {
   try {
-    const headersList = headers();
-    const ipAddress = headersList.get('x-forwarded-for')?.split(',')[0].trim() || '127.0.0.1';
+    // In a real app, you would save this to a database.
+    // Here, we're just logging it and returning a mock success response.
+    console.log("--- MOCK ORDER CREATED ---");
+    console.log("User Details:", userDetails);
+    console.log("Total:", total);
+    console.log("Cart Items:", cart.length);
     
-    // Sanitize cart items for Firestore
-    const sanitizedCartItems = cart.map(item => {
-      // Create a simplified product object to avoid storing the full product data
-      const simplifiedProduct = {
-          id: item.product.id,
-          name: item.product.name,
-          price: item.product.price,
-          image: item.product.image,
-          category: item.product.category || 'N/A',
-      };
-
-      // The pricePerItem now comes directly from the cart item, which is reliable
-      return {
-          id: item.id,
-          product: simplifiedProduct,
-          quantity: item.quantity,
-          pricePerItem: item.pricePerItem, 
-          selectedColor: item.selectedColor?.color || null,
-          selectedSize: item.selectedSize || null,
-          selectedVariant: item.selectedVariant?.name || null,
-      };
-    });
-
-    // Create the initial order object
-    const orderData: Omit<Order, 'id' | 'orderDate'> & { orderDate: Timestamp } = {
-      orderDate: Timestamp.now(),
+    // Create a mock order object to return
+    const newOrder: Order = {
+      id: `mock_${new Date().getTime()}`,
+      orderDate: new Date(),
       customer: {
-        name: userDetails.name,
-        email: userDetails.email,
-        phone: userDetails.phone || 'N/A',
-        ipAddress: ipAddress,
-        location: 'N/A', 
+        ...userDetails,
+        ipAddress: '127.0.0.1',
+        location: 'Mock Location',
       },
-      items: sanitizedCartItems,
+      items: cart,
       total: total,
       status: 'Completed',
       paymentMethod: 'Demo Payment',
-    };
-
-    const docRef = await addDoc(collection(db, 'orders'), orderData);
-    
-    revalidatePath('/admin/orders');
-
-    // Return a plain object that is compatible with the client
-    const newOrder: Order = { 
-        ...orderData, 
-        id: docRef.id, 
-        // Convert Timestamp to a serializable Date for the client
-        orderDate: orderData.orderDate.toDate() 
     };
 
     return {
@@ -69,9 +34,8 @@ export async function createOrder(userDetails: UserDetails, cart: CartItem[], to
     };
 
   } catch (error) {
-    console.error("Error creating order: ", error);
-    // Ensure the error message is a string
+    console.error("Error creating mock order: ", error);
     const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred.';
-    return { success: false, error: `Failed to save the order to the database. Please try again. Details: ${errorMessage}` };
+    return { success: false, error: `Failed to create mock order. Details: ${errorMessage}` };
   }
 }

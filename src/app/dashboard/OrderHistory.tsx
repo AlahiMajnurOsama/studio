@@ -2,16 +2,45 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { db } from "@/lib/firebase";
-import { collection, query, where, getDocs, orderBy } from "firebase/firestore";
 import type { Order } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
 import OrderCard from "@/app/admin/orders/OrderCard";
+import { products as allProducts } from "@/lib/data";
 
 interface OrderHistoryProps {
   userEmail: string;
 }
+
+const generateMockOrdersForUser = (userEmail: string): Order[] => {
+    const getRandomItems = () => {
+        const numItems = Math.floor(Math.random() * 2) + 1;
+        const shuffled = [...allProducts].sort(() => 0.5 - Math.random());
+        return shuffled.slice(0, numItems).map(product => ({
+            id: product.id,
+            product,
+            quantity: Math.floor(Math.random() * 2) + 1,
+            pricePerItem: product.price,
+        }));
+    };
+
+    const mockOrder: Omit<Order, 'id'> = {
+        orderDate: new Date('2024-05-20T10:30:00Z'),
+        customer: { name: 'Demo User', email: userEmail, phone: '123-456-7890', ipAddress: '192.168.1.1', location: 'Your Location' },
+        items: getRandomItems(),
+        total: 150.99, 
+        status: 'Completed', 
+        paymentMethod: 'Credit Card',
+    };
+    
+    const total = mockOrder.items.reduce((sum, item) => sum + (item.product.price * item.quantity), 0);
+    
+    return [{
+        ...mockOrder,
+        id: `mock_user_order_1`,
+        total,
+    }];
+};
 
 export default function OrderHistory({ userEmail }: OrderHistoryProps) {
   const [orders, setOrders] = useState<Order[]>([]);
@@ -19,28 +48,17 @@ export default function OrderHistory({ userEmail }: OrderHistoryProps) {
   const { toast } = useToast();
 
   useEffect(() => {
-    const fetchOrders = async () => {
+    const fetchOrders = () => {
       if (!userEmail) return;
 
       setLoading(true);
       try {
-        // Query for orders matching the user's email
-        const q = query(
-          collection(db, "orders"),
-          where("customer.email", "==", userEmail)
-        );
-        const querySnapshot = await getDocs(q);
-        
-        // Map and sort the documents client-side
-        const ordersData = querySnapshot.docs
-          .map((doc) => ({ ...doc.data(), id: doc.id }) as Order)
-          .sort((a, b) => {
-            const dateA = a.orderDate instanceof Date ? a.orderDate.getTime() : a.orderDate.toMillis();
-            const dateB = b.orderDate instanceof Date ? b.orderDate.getTime() : b.orderDate.toMillis();
-            return dateB - dateA; // Sort descending
-          });
-
-        setOrders(ordersData);
+        // Simulate API call
+        setTimeout(() => {
+          const ordersData = generateMockOrdersForUser(userEmail);
+          setOrders(ordersData);
+          setLoading(false);
+        }, 500);
       } catch (error) {
         console.error("Error fetching user orders: ", error);
         toast({
@@ -48,7 +66,6 @@ export default function OrderHistory({ userEmail }: OrderHistoryProps) {
           description: "Failed to fetch your order history.",
           variant: "destructive",
         });
-      } finally {
         setLoading(false);
       }
     };

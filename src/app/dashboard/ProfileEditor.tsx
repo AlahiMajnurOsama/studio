@@ -4,7 +4,6 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import type { User } from "firebase/auth";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -17,8 +16,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
-import { getAuth, updateProfile, sendPasswordResetEmail } from "firebase/auth";
-import { useState, useTransition } from "react";
+import { useState } from "react";
 import { Loader2 } from "lucide-react";
 
 const profileSchema = z.object({
@@ -29,7 +27,7 @@ const profileSchema = z.object({
 type ProfileFormValues = z.infer<typeof profileSchema>;
 
 interface ProfileEditorProps {
-  user: User;
+  user: { displayName: string | null; email: string | null };
 }
 
 export default function ProfileEditor({ user }: ProfileEditorProps) {
@@ -47,46 +45,26 @@ export default function ProfileEditor({ user }: ProfileEditorProps) {
 
   const handleUpdateProfile = async (values: ProfileFormValues) => {
     setIsSubmitting(true);
-    const auth = getAuth();
-    if (auth.currentUser) {
-      try {
-        await updateProfile(auth.currentUser, {
-          displayName: values.displayName,
-        });
-        toast({
-          title: "Success!",
-          description: "Your profile has been updated.",
-        });
-      } catch (error: any) {
-        toast({
-          title: "Error",
-          description: "Failed to update profile: " + error.message,
-          variant: "destructive",
-        });
-      }
-    }
-    setIsSubmitting(false);
+    // Mock update
+    setTimeout(() => {
+       toast({
+        title: "Success! (Demo)",
+        description: "Your profile has been updated.",
+      });
+      setIsSubmitting(false);
+    }, 500)
   };
 
   const handlePasswordReset = async () => {
     setIsResetting(true);
-    const auth = getAuth();
-    if (auth.currentUser?.email) {
-      try {
-        await sendPasswordResetEmail(auth, auth.currentUser.email);
+    // Mock password reset
+    setTimeout(() => {
         toast({
-          title: "Password Reset Email Sent",
+          title: "Password Reset Email Sent (Demo)",
           description: "Check your inbox to reset your password.",
         });
-      } catch (error: any) {
-        toast({
-          title: "Error",
-          description: "Failed to send password reset email: " + error.message,
-          variant: "destructive",
-        });
-      }
-    }
-    setIsResetting(false);
+        setIsResetting(false);
+    }, 500)
   }
 
   return (
