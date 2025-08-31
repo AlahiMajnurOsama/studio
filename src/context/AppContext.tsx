@@ -7,6 +7,7 @@ import {
   useEffect,
   ReactNode,
   useCallback,
+  useTransition,
 } from 'react';
 
 type Theme = 'light' | 'dark';
@@ -40,12 +41,14 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [isPageLoading, setPageLoading] = useState(false);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
+  const [isPending, startTransition] = useTransition();
 
   useEffect(() => {
     const storedTheme = localStorage.getItem('theme') as Theme | null;
     const initialTheme = storedTheme || 'dark';
     setThemeState(initialTheme);
     document.documentElement.className = initialTheme;
+    setIsInitialLoading(false);
   }, []);
 
   const setTheme = (newTheme: Theme) => {
@@ -55,17 +58,25 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const toggleCategory = useCallback((category: string) => {
-    setSelectedCategories((prev) =>
-      prev.includes(category)
-        ? prev.filter((c) => c !== category)
-        : [...prev, category]
-    );
+    startTransition(() => {
+      setSelectedCategories((prev) =>
+        prev.includes(category)
+          ? prev.filter((c) => c !== category)
+          : [...prev, category]
+      );
+    });
   }, []);
 
   const clearFilters = useCallback(() => {
-    setPriceRange([0, 1000]);
-    setSelectedCategories([]);
+    startTransition(() => {
+      setPriceRange([0, 1000]);
+      setSelectedCategories([]);
+    });
   }, []);
+
+  useEffect(() => {
+    setPageLoading(isPending);
+  }, [isPending]);
 
   const value = {
     theme,
@@ -80,7 +91,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     setSelectedCategories,
     toggleCategory,
     clearFilters,
-    isPageLoading,
+    isPageLoading: isPageLoading || isPending,
     setPageLoading,
     isInitialLoading,
     setIsInitialLoading,

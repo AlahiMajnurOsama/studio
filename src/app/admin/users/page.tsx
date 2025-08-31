@@ -112,7 +112,7 @@ export default function AdminUsersPage() {
     setLoading(true);
     const result = await getAllUsers();
     if (result.success && result.users) {
-      setUsers(result.users);
+      setUsers(result.users as unknown as UserRecord[]);
     } else {
       toast({
         title: "Error fetching users",

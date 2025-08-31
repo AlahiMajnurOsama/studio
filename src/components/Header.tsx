@@ -8,13 +8,6 @@ import { Button } from './ui/button';
 import Logo from './icons/Logo';
 import { Input } from './ui/input';
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -65,41 +58,16 @@ const ThemeSwitcher = () => {
 };
 
 const SearchBar = () => {
-  const [isSearchOpen, setIsSearchOpen] = useState(false);
-  const { search, setSearch, sort, setSort } = useAppContext();
-  const searchRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        searchRef.current &&
-        !searchRef.current.contains(event.target as Node)
-      ) {
-        setIsSearchOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, []);
+  const { search, setSearch } = useAppContext();
 
   return (
-    <div
-      ref={searchRef}
-      className={cn(
-        'relative transition-all duration-300 ease-in-out w-full md:absolute md:left-1/2 md:top-1/2 md:-translate-x-1/2 md:-translate-y-1/2',
-        isSearchOpen ? 'max-w-md' : 'md:w-64'
-      )}
-    >
-      <div className="relative">
+    <div className="relative w-full">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
         <Input
           type="text"
           placeholder="Search products..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          onFocus={() => setIsSearchOpen(true)}
           className="pl-10 w-full rounded-full bg-secondary/50 focus:bg-background"
         />
         {search && (
@@ -113,33 +81,6 @@ const SearchBar = () => {
           </Button>
         )}
       </div>
-      <div
-        className={cn(
-          'absolute top-full mt-2 w-full origin-top transition-all duration-200 ease-in-out z-20',
-          isSearchOpen
-            ? 'scale-y-100 opacity-100'
-            : 'scale-y-95 opacity-0 pointer-events-none'
-        )}
-      >
-        <div className="p-4 bg-background rounded-lg shadow-lg border">
-          <p className="text-sm font-medium mb-2">Sort by:</p>
-          <Select value={sort} onValueChange={setSort}>
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="Sort by" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="popularity-desc">Popularity</SelectItem>
-              <SelectItem value="price-asc">
-                Price: Low to High
-              </SelectItem>
-              <SelectItem value="price-desc">
-                Price: High to Low
-              </SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-    </div>
   );
 };
 
@@ -246,7 +187,9 @@ const Header = () => {
             <Logo />
           </a>
           
-          {!isMobile && <SearchBar />}
+          <div className="hidden md:block w-full max-w-md">
+            <SearchBar />
+          </div>
 
           <div className="flex items-center gap-2">
             <ThemeSwitcher />
@@ -262,7 +205,7 @@ const Header = () => {
             <UserProfileButton />
           </div>
         </div>
-        {isMobile && !pathname.startsWith('/admin') && <div className="pb-4 px-4"><SearchBar /></div>}
+        {isMobile && !pathname.startsWith('/admin') && <div className="pb-4"><SearchBar /></div>}
       </div>
     </header>
     <Cart isOpen={isCartOpen} onOpenChange={setIsCartOpen} />

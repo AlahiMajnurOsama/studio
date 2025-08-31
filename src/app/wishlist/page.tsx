@@ -23,23 +23,25 @@ export default function WishlistPage() {
   }, [isPending, setPageLoading]);
   
   useEffect(() => {
-    const fetchWishlistedProducts = async () => {
-      if (wishlist.length === 0) {
-        setLoading(false);
-        setWishlistedProducts([]);
-        return;
-      }
+    startTransition(() => {
+      const fetchWishlistedProducts = async () => {
+        if (wishlist.length === 0) {
+          setLoading(false);
+          setWishlistedProducts([]);
+          return;
+        }
 
-      setLoading(true);
-      // Simulate API call
-      setTimeout(() => {
-        const productsData = allProducts.filter(p => wishlist.includes(p.id));
-        setWishlistedProducts(productsData);
-        setLoading(false);
-      }, 300);
-    };
+        setLoading(true);
+        // Simulate API call
+        setTimeout(() => {
+          const productsData = allProducts.filter(p => wishlist.includes(p.id));
+          setWishlistedProducts(productsData);
+          setLoading(false);
+        }, 300);
+      };
 
-    fetchWishlistedProducts();
+      fetchWishlistedProducts();
+    });
   }, [wishlist]);
 
   return (

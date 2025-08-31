@@ -9,6 +9,9 @@ import { Heart, ShoppingBag } from "lucide-react";
 import { Card, CardContent, CardFooter, CardHeader } from "./ui/card";
 import { cn } from "@/lib/utils";
 import { useCart } from "@/hooks/useCart";
+import { useRouter } from "next/navigation";
+import { useTransition } from "react";
+import { useAppContext } from "@/context/AppContext";
 
 interface ProductCardProps {
   product: Product;
@@ -18,6 +21,13 @@ const ProductCard = ({ product }: ProductCardProps) => {
   const { isInWishlist, addToWishlist, removeFromWishlist } = useWishlist();
   const { addToCart } = useCart();
   const isWishlisted = isInWishlist(product.id);
+  const router = useRouter();
+  const [ isPending, startTransition ] = useTransition();
+  const { setPageLoading } = useAppContext();
+
+  useEffect(() => {
+    setPageLoading(isPending);
+  }, [isPending, setPageLoading]);
 
   const handleWishlistToggle = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -34,9 +44,16 @@ const ProductCard = ({ product }: ProductCardProps) => {
     e.stopPropagation();
     addToCart(product, 1);
   };
+  
+  const handleNav = (e: React.MouseEvent) => {
+    e.preventDefault();
+    startTransition(() => {
+        router.push(`/${product.id}`);
+    });
+  }
 
   return (
-    <Link href={`/${product.id}`} className="group block">
+    <a href={`/${product.id}`} onClick={handleNav} className="group block">
       <Card className="h-full flex flex-col overflow-hidden transition-all duration-500 ease-in-out hover:shadow-2xl hover:-translate-y-2 hover:shadow-primary/10 border-transparent bg-card/50 backdrop-blur-sm">
         <CardHeader className="p-0 relative overflow-hidden">
           <Image
@@ -78,7 +95,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
           </Button>
         </CardFooter>
       </Card>
-    </Link>
+    </a>
   );
 };
 

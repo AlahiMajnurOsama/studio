@@ -32,6 +32,7 @@ export default function Home() {
   const {
     search,
     sort,
+    setSort,
     priceRange,
     setPriceRange,
     selectedCategories,
@@ -165,9 +166,9 @@ export default function Home() {
               <button
                 key={category}
                 onClick={() => toggleCategory(category)}
-                className={`p-4 rounded-lg text-center font-semibold transition-all duration-300 border-2 ${
+                className={`p-4 rounded-lg text-center font-semibold transition-all duration-300 border-2 active:scale-95 ${
                   selectedCategories.includes(category)
-                    ? 'bg-primary/10 border-primary text-primary'
+                    ? 'bg-primary/10 border-primary text-primary shadow-lg shadow-primary/10'
                     : 'bg-card hover:shadow-md hover:-translate-y-1 border-transparent'
                 }`}
               >
@@ -200,6 +201,24 @@ export default function Home() {
                 onValueChange={(value) => setPriceRange(value as [number, number])}
                 className="mt-2"
               />
+            </div>
+
+             <div>
+              <Label className="font-medium">Sort by</Label>
+               <Select value={sort} onValueChange={setSort}>
+                <SelectTrigger className="w-full mt-2">
+                  <SelectValue placeholder="Sort by" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="popularity-desc">Popularity</SelectItem>
+                  <SelectItem value="price-asc">
+                    Price: Low to High
+                  </SelectItem>
+                  <SelectItem value="price-desc">
+                    Price: High to Low
+                  </SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             <Button

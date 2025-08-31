@@ -35,6 +35,13 @@ export default function AdminDashboardPage() {
     }
   }, [user, authLoading, isAdmin, router]);
 
+  const handleNav = (path: string) => (e: React.MouseEvent) => {
+    e.preventDefault();
+    startTransition(() => {
+      router.push(path);
+    });
+  }
+
 
   if (authLoading || !user || !isAdmin) {
     return (
@@ -53,7 +60,7 @@ export default function AdminDashboardPage() {
         </h1>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <Link href="/admin/products">
+            <a href="/admin/products" onClick={handleNav('/admin/products')}>
                 <Card className="hover:border-primary hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">
@@ -68,9 +75,9 @@ export default function AdminDashboardPage() {
                         </p>
                     </CardContent>
                 </Card>
-            </Link>
+            </a>
 
-            <Link href="/admin/orders">
+            <a href="/admin/orders" onClick={handleNav('/admin/orders')}>
                 <Card className="hover:border-primary hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">
@@ -85,9 +92,9 @@ export default function AdminDashboardPage() {
                         </p>
                     </CardContent>
                 </Card>
-            </Link>
+            </a>
             
-            <Link href="/admin/users">
+            <a href="/admin/users" onClick={handleNav('/admin/users')}>
                  <Card className="hover:border-primary hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">
@@ -102,7 +109,7 @@ export default function AdminDashboardPage() {
                         </p>
                     </CardContent>
                 </Card>
-            </Link>
+            </a>
         </div>
     </div>
   );

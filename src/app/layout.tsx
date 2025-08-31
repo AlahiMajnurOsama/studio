@@ -38,7 +38,7 @@ export default function RootLayout({
             <WishlistProvider>
               <CartProvider>
                 <Header />
-                <main className="flex-grow pt-20">{children}</main>
+                <main className="flex-grow pt-20 animate-fade-in">{children}</main>
                 <PageLoader />
               </CartProvider>
             </WishlistProvider>
