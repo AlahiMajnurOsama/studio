@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from "next/link";
@@ -10,7 +11,7 @@ import { Card, CardContent, CardFooter, CardHeader } from "./ui/card";
 import { cn } from "@/lib/utils";
 import { useCart } from "@/hooks/useCart";
 import { useRouter } from "next/navigation";
-import { useTransition } from "react";
+import { useTransition, useEffect } from "react";
 import { useAppContext } from "@/context/AppContext";
 
 interface ProductCardProps {

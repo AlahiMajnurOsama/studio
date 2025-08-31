@@ -87,6 +87,13 @@ export default function AdminOrdersPage() {
     }
   }, [user]);
 
+  const handleBackNav = (e: React.MouseEvent) => {
+    e.preventDefault();
+    startTransition(() => {
+        router.push('/admin');
+    });
+  };
+
   if (authLoading || !user) {
     return (
       <div className="container mx-auto px-4 py-8">
@@ -101,9 +108,9 @@ export default function AdminOrdersPage() {
     <div className="container mx-auto px-4 py-8">
       <div className="flex items-center gap-4 mb-8">
         <Button variant="outline" size="icon" asChild>
-          <Link href="/admin">
+          <a href="/admin" onClick={handleBackNav}>
             <ArrowLeft />
-          </Link>
+          </a>
         </Button>
         <h1 className="text-3xl md:text-4xl font-bold font-headline tracking-tight">
           Transactions
