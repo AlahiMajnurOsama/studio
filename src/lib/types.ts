@@ -2,6 +2,7 @@
 export type ProductVariant = {
   name: string;
   priceModifier?: number;
+  sizes?: string[];
 };
 
 export type ColorVariant = {
@@ -55,3 +56,4 @@ export type Order = {
   status: OrderStatus;
   paymentMethod: string;
 };
+
