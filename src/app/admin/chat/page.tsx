@@ -27,6 +27,7 @@ export default function AdminChatPage() {
   const [message, setMessage] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const messageCountRef = useRef(0);
 
   useEffect(() => {
     if (!authLoading && (!user || !isAdmin)) {
@@ -41,7 +42,8 @@ export default function AdminChatPage() {
   }, [activeSession, markAsRead]);
 
   useEffect(() => {
-    if (activeSession && scrollAreaRef.current) {
+    if (activeSession && activeSession.messages.length > messageCountRef.current) {
+      messageCountRef.current = activeSession.messages.length;
       setTimeout(() => {
         const viewport = scrollAreaRef.current?.querySelector('[data-radix-scroll-area-viewport]');
         if (viewport) {
@@ -49,7 +51,7 @@ export default function AdminChatPage() {
         }
       }, 100);
     }
-  }, [activeSession?.messages]);
+  }, [activeSession, activeSession?.messages]);
 
 
   const handleSendMessage = () => {
