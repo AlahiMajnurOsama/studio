@@ -7,6 +7,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Skeleton } from "@/components/ui/skeleton";
 import ProfileEditor from "./ProfileEditor";
 import OrderHistory from "./OrderHistory";
+import ChatCard from "./ChatCard";
 
 export default function DashboardPage() {
   const { user, loading: authLoading } = useAuth();
@@ -43,14 +44,20 @@ export default function DashboardPage() {
       <h1 className="text-4xl font-bold font-headline tracking-tight mb-8">
         My Dashboard
       </h1>
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 items-start">
+        <div className="lg:col-span-2 space-y-8">
+            <div>
+              <h2 className="text-2xl font-semibold mb-4">Order History</h2>
+              <OrderHistory userEmail={user.email!} />
+            </div>
+            <div>
+                <h2 className="text-2xl font-semibold mb-4">Live Chat Support</h2>
+                <ChatCard />
+            </div>
+        </div>
         <div className="lg:col-span-1">
           <h2 className="text-2xl font-semibold mb-4">My Profile</h2>
           <ProfileEditor user={user} />
-        </div>
-        <div className="lg:col-span-2">
-          <h2 className="text-2xl font-semibold mb-4">Order History</h2>
-          <OrderHistory userEmail={user.email!} />
         </div>
       </div>
     </div>
