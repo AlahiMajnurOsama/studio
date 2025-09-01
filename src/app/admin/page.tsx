@@ -10,6 +10,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
 import { Package, Users, ArrowRight, DollarSign, Tag, Settings } from "lucide-react";
 import { useNavigation } from "@/hooks/useNavigation";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 
 const StatCard = ({
   title,
