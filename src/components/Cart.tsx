@@ -1,3 +1,4 @@
+
 "use client";
 
 import Image from 'next/image';
@@ -45,8 +46,8 @@ export default function Cart({ isOpen, onOpenChange }: CartProps) {
             <ScrollArea className="flex-grow pr-6 -mr-6">
               <div className="space-y-4 py-4">
                 {cart.map((item) => {
-                  const itemPrice = item.product.price + (item.selectedVariant?.priceModifier || 0);
-                  const displayImage = item.selectedColor?.image || item.product.image;
+                  const itemPrice = item.pricePerItem;
+                  const displayImage = item.product.image;
 
                   return (
                     <div key={item.id} className="flex gap-4">
@@ -63,7 +64,6 @@ export default function Cart({ isOpen, onOpenChange }: CartProps) {
                         <div>
                           <h4 className="font-semibold text-sm">{item.product.name}</h4>
                           <div className="text-xs text-muted-foreground space-y-0.5 mt-1">
-                            {item.selectedColor && <p>Color: {item.selectedColor.color}</p>}
                             {item.selectedSize && <p>Size: {item.selectedSize}</p>}
                             {item.selectedVariant && <p>Variant: {item.selectedVariant.name}</p>}
                           </div>

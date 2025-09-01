@@ -66,10 +66,10 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
           id: cartItemId,
           product,
           quantity,
-          selectedColor,
+          selectedColor: null, // Color variants removed
           selectedSize,
           selectedVariant,
-          pricePerItem, // <-- This was the missing field
+          pricePerItem,
         };
         return [...prevCart, newItem];
       }

@@ -1,7 +1,8 @@
+
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
-import type { Product, ProductVariant, ColorVariant } from "@/lib/types";
+import type { Product, ProductVariant } from "@/lib/types";
 import { useWishlist } from "@/hooks/useWishlist";
 import { Button } from "@/components/ui/button";
 import { Heart, ShoppingBag, Check, Star } from "lucide-react";
@@ -33,15 +34,26 @@ export default function ProductDetailsClient({ product }: { product: Product }) 
   const { addToCart } = useCart();
   const [isAdded, setIsAdded] = useState(false);
 
-  const [selectedColor, setSelectedColor] = useState<ColorVariant | null>(
-    product.colorVariants?.[0] || null
-  );
-  const [selectedSize, setSelectedSize] = useState<string | null>(
-    product.sizes?.[0] || null
-  );
   const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(
     product.variants?.[0] || null
   );
+
+  const availableSizes = useMemo(() => {
+    if (selectedVariant?.sizes && selectedVariant.sizes.length > 0) {
+      return selectedVariant.sizes;
+    }
+    return product.sizes || [];
+  }, [selectedVariant, product.sizes]);
+  
+  const [selectedSize, setSelectedSize] = useState<string | null>(
+    availableSizes?.[0] || null
+  );
+  
+  // Reset selected size when available sizes change
+  useEffect(() => {
+    setSelectedSize(availableSizes?.[0] || null);
+  }, [availableSizes]);
+
 
   const isWishlisted = isInWishlist(product.id);
 
@@ -54,7 +66,7 @@ export default function ProductDetailsClient({ product }: { product: Product }) 
   };
 
   const handleAddToCart = () => {
-    addToCart(product, 1, selectedColor, selectedSize, selectedVariant);
+    addToCart(product, 1, null, selectedSize, selectedVariant);
     setIsAdded(true);
     setTimeout(() => setIsAdded(false), 2000);
   };
@@ -81,8 +93,6 @@ export default function ProductDetailsClient({ product }: { product: Product }) 
     return product.price + (selectedVariant?.priceModifier || 0);
   }, [product.price, selectedVariant]);
 
-  const displayedImage = selectedColor?.image || product.image;
-
   return (
     <div className="grid lg:grid-cols-2 gap-12 items-center relative z-10">
         <div className="relative w-full h-[60vh] flex items-center justify-center">
@@ -100,8 +110,8 @@ export default function ProductDetailsClient({ product }: { product: Product }) 
         </div>
         <div className="relative w-[80%] aspect-square group transition-transform duration-500 hover:scale-105 z-10">
             <Image
-                key={displayedImage} // Add key to force re-render on image change
-                src={displayedImage}
+                key={product.image}
+                src={product.image}
                 alt={product.name}
                 fill
                 className="object-contain drop-shadow-[0_25px_25px_rgba(0,0,0,0.5)] animate-fade-in"
@@ -137,45 +147,6 @@ export default function ProductDetailsClient({ product }: { product: Product }) 
         </div>
 
         <div className="space-y-6">
-            {product.colorVariants && product.colorVariants.length > 0 && (
-            <VariationSelector label="Color">
-                {product.colorVariants.map((variant) => (
-                <button
-                    key={variant.color}
-                    onClick={() => setSelectedColor(variant)}
-                    className={cn(
-                    "h-10 w-10 rounded-full border-2 transition-transform duration-200 active:scale-90",
-                    selectedColor?.color === variant.color
-                        ? "border-primary scale-110 shadow-lg shadow-primary/20"
-                        : "border-neutral-700 hover:scale-110 hover:border-primary/50"
-                    )}
-                    style={{ backgroundColor: variant.color }}
-                    aria-label={`Select color ${variant.color}`}
-                >
-                </button>
-                ))}
-            </VariationSelector>
-            )}
-
-            {product.sizes && product.sizes.length > 0 && (
-            <VariationSelector label="Size">
-                {product.sizes.map((size) => (
-                <button
-                    key={size}
-                    onClick={() => setSelectedSize(size)}
-                    className={cn(
-                    "px-4 py-2 rounded-md border text-sm font-bold transition-all duration-200 active:scale-95",
-                    selectedSize === size
-                        ? "bg-primary text-primary-foreground border-transparent shadow-lg shadow-primary/30"
-                        : "bg-neutral-800 border-neutral-700 hover:border-primary hover:bg-neutral-700"
-                    )}
-                >
-                    {size}
-                </button>
-                ))}
-            </VariationSelector>
-            )}
-
             {product.variants && product.variants.length > 0 && (
             <VariationSelector label="Variant">
                 {product.variants.map((variant) => (
@@ -196,6 +167,25 @@ export default function ProductDetailsClient({ product }: { product: Product }) 
                 </button>
                 ))}
             </VariationSelector>
+            )}
+
+            {availableSizes.length > 0 && (
+                <VariationSelector label="Size">
+                    {availableSizes.map((size) => (
+                    <button
+                        key={size}
+                        onClick={() => setSelectedSize(size)}
+                        className={cn(
+                        "px-4 py-2 rounded-md border text-sm font-bold transition-all duration-200 active:scale-95",
+                        selectedSize === size
+                            ? "bg-primary text-primary-foreground border-transparent shadow-lg shadow-primary/30"
+                            : "bg-neutral-800 border-neutral-700 hover:border-primary hover:bg-neutral-700"
+                        )}
+                    >
+                        {size}
+                    </button>
+                    ))}
+                </VariationSelector>
             )}
         </div>
 

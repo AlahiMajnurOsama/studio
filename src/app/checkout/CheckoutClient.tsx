@@ -243,7 +243,7 @@ export default function CheckoutClient() {
                                 return (
                                     <div key={item.id} className="flex items-center gap-4">
                                         <Image 
-                                            src={item.selectedColor?.image || item.product.image}
+                                            src={item.product.image}
                                             alt={item.product.name}
                                             width={64}
                                             height={64}
