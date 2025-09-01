@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
-import { ChevronDown, Copy, CheckCircle, Clock, Truck, XCircle, AlertTriangle } from 'lucide-react';
+import { ChevronDown, Copy, CheckCircle, Clock, Truck, XCircle } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
