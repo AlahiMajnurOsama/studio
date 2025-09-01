@@ -26,7 +26,6 @@ interface AuthContextType {
   user: MockUser | null;
   loading: boolean;
   isAdmin: boolean;
-  signInWithGoogle: () => Promise<{ success: boolean; error?: string }>;
   signInWithEmail: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   createUserWithEmail: (email: string, password: string, displayName: string) => Promise<{ success: boolean; error?: string }>;
   signInAnonymously: () => Promise<{ success: boolean; error?: string }>;
@@ -35,7 +34,7 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const createMockUser = (email: string, displayName: string, isAnonymous = false): MockUser => ({
+const createMockUser = (email: string | null, displayName: string, isAnonymous = false): MockUser => ({
     uid: `mock_${new Date().getTime()}`,
     email,
     displayName,
@@ -74,10 +73,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const signInWithGoogle = useCallback(async () => {
-    return await performAuthAction(() => createMockUser("google.user@example.com", "Google User"));
-  }, []);
-
   const signInAnonymously = useCallback(async () => {
     return await performAuthAction(() => createMockUser(null, "Guest User", true));
   }, []);
@@ -102,13 +97,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       user,
       loading: isInitialLoading,
       isAdmin,
-      signInWithGoogle,
       signInWithEmail,
       createUserWithEmail,
       signInAnonymously,
       signOutUser,
     }),
-    [user, isInitialLoading, isAdmin, signInWithGoogle, signInWithEmail, createUserWithEmail, signInAnonymously, signOutUser]
+    [user, isInitialLoading, isAdmin, signInWithEmail, createUserWithEmail, signInAnonymously, signOutUser]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
