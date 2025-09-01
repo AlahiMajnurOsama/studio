@@ -4,14 +4,30 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
-import type { Order } from "@/lib/types";
+import type { Order, OrderStatus } from "@/lib/types";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, MoreHorizontal, CheckCircle, Clock, Truck, XCircle } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import OrderCard from "./OrderCard";
 import { products as allProducts } from "@/lib/data";
 import { useNavigation } from "@/hooks/useNavigation";
-
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Badge } from "@/components/ui/badge";
+import { format } from 'date-fns';
+import { useToast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
 
 const generateMockOrders = (): Order[] => {
     const getRandomItems = () => {
@@ -62,10 +78,18 @@ const generateMockOrders = (): Order[] => {
     });
 };
 
+const statusConfig: Record<OrderStatus, { label: string; color: string; icon: React.ElementType }> = {
+    Pending: { label: 'Pending', color: 'bg-yellow-500', icon: Clock },
+    Processing: { label: 'Processing', color: 'bg-blue-500', icon: Truck },
+    Completed: { label: 'Completed', color: 'bg-green-600', icon: CheckCircle },
+    Cancelled: { label: 'Cancelled', color: 'bg-red-500', icon: XCircle },
+};
+
 
 export default function AdminOrdersPage() {
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
+  const { toast } = useToast();
   const { handleNav } = useNavigation();
 
   const [orders, setOrders] = useState<Order[]>([]);
@@ -81,21 +105,24 @@ export default function AdminOrdersPage() {
   useEffect(() => {
     if (user) {
       setLoading(true);
-      // Simulate fetching data
       setTimeout(() => {
         const mockData = generateMockOrders();
-        setOrders(mockData);
+        setOrders(mockData.sort((a, b) => new Date(b.orderDate).getTime() - new Date(a.orderDate).getTime()));
         setLoading(false);
       }, 500);
     }
   }, [user]);
 
-  const handleStatusChange = (orderId: string, newStatus: Order['status']) => {
+  const handleStatusChange = (orderId: string, newStatus: OrderStatus) => {
     setOrders(prevOrders =>
       prevOrders.map(order =>
         order.id === orderId ? { ...order, status: newStatus } : order
       )
     );
+    toast({
+        title: "Order Status Updated",
+        description: `Order #${orderId.slice(-6).toUpperCase()} is now ${newStatus}.`,
+    });
   };
 
 
@@ -122,21 +149,67 @@ export default function AdminOrdersPage() {
 
       {loading ? (
         <div className="space-y-4">
-          {Array.from({ length: 5 }).map((_, i) => (
-            <Skeleton key={i} className="h-24 w-full" />
+          {Array.from({ length: 8 }).map((_, i) => (
+            <Skeleton key={i} className="h-16 w-full" />
           ))}
         </div>
       ) : orders.length > 0 ? (
-        <div className="space-y-4">
-          {orders.map((order) => (
-            <OrderCard key={order.id} order={order} onStatusChange={handleStatusChange} />
-          ))}
+        <div className="bg-card border rounded-lg shadow-sm">
+            <Table>
+                <TableHeader>
+                    <TableRow>
+                        <TableHead>Order ID</TableHead>
+                        <TableHead>Customer</TableHead>
+                        <TableHead>Date</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead className="text-right">Total</TableHead>
+                        <TableHead className="text-center">Actions</TableHead>
+                    </TableRow>
+                </TableHeader>
+                <TableBody>
+                    {orders.map(order => {
+                        const currentStatus = statusConfig[order.status];
+                        return (
+                            <TableRow key={order.id}>
+                                <TableCell className="font-medium">#{order.id.slice(-6).toUpperCase()}</TableCell>
+                                <TableCell>{order.customer.name}</TableCell>
+                                <TableCell>{format(new Date(order.orderDate), 'MMM dd, yyyy')}</TableCell>
+                                <TableCell>
+                                    <Badge variant="default" className={cn("text-white text-xs", currentStatus.color)}>
+                                        <currentStatus.icon className="h-3 w-3 mr-1.5" />
+                                        {currentStatus.label}
+                                    </Badge>
+                                </TableCell>
+                                <TableCell className="text-right">${order.total.toFixed(2)}</TableCell>
+                                <TableCell className="text-center">
+                                    <DropdownMenu>
+                                        <DropdownMenuTrigger asChild>
+                                            <Button variant="ghost" size="icon">
+                                                <MoreHorizontal className="h-4 w-4" />
+                                            </Button>
+                                        </DropdownMenuTrigger>
+                                        <DropdownMenuContent align="end">
+                                            <DropdownMenuItem>View Details</DropdownMenuItem>
+                                            {(Object.keys(statusConfig) as OrderStatus[]).map(status => (
+                                                <DropdownMenuItem key={status} onSelect={() => handleStatusChange(order.id, status)}>
+                                                    <statusConfig[status].icon className="mr-2 h-4 w-4" />
+                                                    <span>Set to {statusConfig[status].label}</span>
+                                                </DropdownMenuItem>
+                                            ))}
+                                        </DropdownMenuContent>
+                                    </DropdownMenu>
+                                </TableCell>
+                            </TableRow>
+                        )
+                    })}
+                </TableBody>
+            </Table>
         </div>
       ) : (
          <div className="text-center py-16 border-2 border-dashed rounded-lg">
             <h2 className="text-2xl font-semibold mb-2">No transactions found</h2>
             <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-              This is a demo environment. Transactions will appear here once a backend is connected.
+              Transactions will appear here once orders are placed.
             </p>
         </div>
       )}
