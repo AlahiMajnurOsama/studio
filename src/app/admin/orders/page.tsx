@@ -31,28 +31,24 @@ const generateMockOrders = (): Order[] => {
             customer: { name: 'Alice Johnson', email: 'alice@example.com', phone: '123-456-7890', ipAddress: '192.168.1.1', location: 'New York, USA' },
             items: getRandomItems(),
             total: 285.49, status: 'Completed', paymentMethod: 'Credit Card',
-            aiAnalysis: { riskScore: 10, summary: 'Low risk. Verified customer with consistent purchase history.', keyFactors: ['Repeat customer', 'Standard shipping address', 'IP matches location'] },
         },
         {
             orderDate: new Date('2024-05-21T14:00:00Z'),
             customer: { name: 'Bob Smith', email: 'bob@example.com', phone: '987-654-3210', ipAddress: '10.0.0.1', location: 'London, UK' },
             items: getRandomItems(),
             total: 120.00, status: 'Pending', paymentMethod: 'PayPal',
-            aiAnalysis: { riskScore: 45, summary: 'Medium risk. New customer with high-value order.', keyFactors: ['First-time purchase', 'International shipping', 'Proxy IP detected'] },
         },
         {
             orderDate: new Date('2024-05-22T09:15:00Z'),
             customer: { name: 'Charlie Brown', email: 'charlie@example.com', phone: '555-123-4567', ipAddress: '172.16.0.1', location: 'Toronto, CA' },
             items: getRandomItems(),
             total: 499.98, status: 'Completed', paymentMethod: 'Credit Card',
-            aiAnalysis: { riskScore: 5, summary: 'Very low risk. Long-term customer.', keyFactors: ['Established account', 'AVS match success', 'No unusual activity'] },
         },
         {
             orderDate: new Date('2024-05-23T18:45:00Z'),
             customer: { name: 'Diana Prince', email: 'diana@example.com', phone: '222-333-4444', ipAddress: '203.0.113.50', location: 'Paris, FR' },
             items: getRandomItems(),
             total: 89.98, status: 'Processing', paymentMethod: 'Apple Pay',
-            aiAnalysis: { riskScore: 85, summary: 'High risk. Mismatched IP and shipping.', keyFactors: ['IP location different from shipping', 'Temp email service', 'Unusual order time'] },
         }
     ];
 

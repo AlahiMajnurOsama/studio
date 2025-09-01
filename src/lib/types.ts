@@ -40,12 +40,6 @@ export type UserDetails = {
 
 export type OrderStatus = 'Pending' | 'Processing' | 'Completed' | 'Cancelled';
 
-export type AIAnalysis = {
-    riskScore: number;
-    summary: string;
-    keyFactors: string[];
-};
-
 export type Order = {
   id: string;
   orderDate: Date;
@@ -60,5 +54,4 @@ export type Order = {
   total: number;
   status: OrderStatus;
   paymentMethod: string;
-  aiAnalysis?: AIAnalysis;
 };

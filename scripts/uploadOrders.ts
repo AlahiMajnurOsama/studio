@@ -40,11 +40,6 @@ const sampleOrders: Omit<Order, 'id'>[] = [
         total: 285.49,
         status: 'Completed',
         paymentMethod: 'Credit Card',
-        aiAnalysis: {
-            riskScore: 10,
-            summary: 'Low risk. Verified customer with consistent purchase history.',
-            keyFactors: ['Repeat customer', 'Standard shipping address', 'IP matches location'],
-        },
     },
     {
         orderDate: Timestamp.fromDate(new Date('2024-05-21T14:00:00Z')),
@@ -59,11 +54,6 @@ const sampleOrders: Omit<Order, 'id'>[] = [
         total: 120.00,
         status: 'Pending',
         paymentMethod: 'PayPal',
-        aiAnalysis: {
-            riskScore: 45,
-            summary: 'Medium risk. New customer with high-value order.',
-            keyFactors: ['First-time purchase', 'International shipping', 'Proxy IP detected'],
-        },
     },
      {
         orderDate: Timestamp.fromDate(new Date('2024-05-22T09:15:00Z')),
@@ -78,11 +68,6 @@ const sampleOrders: Omit<Order, 'id'>[] = [
         total: 499.98,
         status: 'Completed',
         paymentMethod: 'Credit Card',
-        aiAnalysis: {
-            riskScore: 5,
-            summary: 'Very low risk. Long-term customer with matching billing and shipping.',
-            keyFactors: ['Established customer account', 'AVS match success', 'No unusual activity'],
-        },
     },
     {
         orderDate: Timestamp.fromDate(new Date('2024-05-23T18:45:00Z')),
@@ -97,11 +82,6 @@ const sampleOrders: Omit<Order, 'id'>[] = [
         total: 89.99,
         status: 'Completed',
         paymentMethod: 'Apple Pay',
-        aiAnalysis: {
-            riskScore: 85,
-            summary: 'High risk. Mismatched IP location and shipping address.',
-            keyFactors: ['IP location from different country than shipping', 'Use of a temporary email service', 'Order placed at unusual time'],
-        },
     }
 ];
 

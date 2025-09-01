@@ -74,12 +74,6 @@ export default function OrderCard({ order, onStatusChange }: OrderCardProps) {
     }
   }
 
-  const riskLevel = order.aiAnalysis 
-    ? order.aiAnalysis.riskScore > 75 ? 'High' : order.aiAnalysis.riskScore > 40 ? 'Medium' : 'Low'
-    : 'Unknown';
-    
-  const riskColor = riskLevel === 'High' ? 'text-red-500' : riskLevel === 'Medium' ? 'text-yellow-500' : 'text-green-500';
-
   return (
     <Card>
       <CardHeader>
@@ -155,27 +149,6 @@ export default function OrderCard({ order, onStatusChange }: OrderCardProps) {
             </div>
 
           </div>
-
-          {order.aiAnalysis && (
-            <div className="pt-4 border-t">
-                <h4 className="font-semibold mb-2 flex items-center">
-                    <AlertTriangle className="mr-2 h-5 w-5 text-primary" />
-                    AI Fraud Analysis
-                </h4>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm bg-muted/50 p-4 rounded-lg">
-                    <div className='flex items-center gap-2'>
-                        <span className="font-medium text-muted-foreground">Risk Level:</span>
-                        <span className={cn('font-bold', riskColor)}>{riskLevel} ({order.aiAnalysis.riskScore}/100)</span>
-                    </div>
-                    <div className='md:col-span-2'>
-                        <p><span className="font-medium text-muted-foreground">Summary:</span> {order.aiAnalysis.summary}</p>
-                    </div>
-                     <div className='md:col-span-3'>
-                        <p><span className="font-medium text-muted-foreground">Key Factors:</span> {order.aiAnalysis.keyFactors.join(', ')}</p>
-                    </div>
-                </div>
-            </div>
-          )}
         </CardContent>
       )}
     </Card>
