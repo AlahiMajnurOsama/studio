@@ -6,9 +6,49 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { Skeleton } from "@/components/ui/skeleton";
 import Link from "next/link";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Package, Users, ShoppingCart } from "lucide-react";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Package, Users, ShoppingCart, ArrowRight, DollarSign, Clock, CheckCircle, XCircle } from "lucide-react";
 import { useAppContext } from "@/context/AppContext";
+import { cn } from "@/lib/utils";
+
+const StatCard = ({
+  title,
+  value,
+  icon: Icon,
+  href,
+  color,
+  bgColor,
+}: {
+  title: string;
+  value: string | number;
+  icon: React.ElementType;
+  href: string;
+  color: string;
+  bgColor: string;
+}) => (
+    <div
+      className={cn(
+        "rounded-lg p-6 text-white transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl",
+        bgColor
+      )}
+    >
+      <div className="flex justify-between items-start">
+        <div>
+          <h3 className="text-4xl font-bold">{value}</h3>
+          <p className="text-sm font-medium mt-1">{title}</p>
+        </div>
+        <div className="p-3 bg-black/20 rounded-lg">
+           <Icon className="h-6 w-6" />
+        </div>
+      </div>
+      <Link href={href}>
+        <div className="mt-6 flex items-center gap-2 text-sm font-semibold py-2 px-3 bg-black/20 rounded-lg hover:bg-black/40">
+          <span>More info</span>
+          <ArrowRight className="h-4 w-4" />
+        </div>
+      </Link>
+    </div>
+);
 
 
 export default function AdminDashboardPage() {
@@ -53,63 +93,35 @@ export default function AdminDashboardPage() {
     );
   }
 
+  const stats = [
+    { title: "Total Products", value: 16, icon: Package, href: "/admin/products", color: "text-blue-500", bgColor: "bg-gradient-to-br from-blue-500 to-blue-700" },
+    { title: "Total Orders", value: 2, icon: ShoppingCart, href: "/admin/orders", color: "text-green-500", bgColor: "bg-gradient-to-br from-green-500 to-green-700" },
+    { title: "Pending Orders", value: 1, icon: Clock, href: "/admin/orders", color: "text-yellow-500", bgColor: "bg-gradient-to-br from-yellow-500 to-yellow-700" },
+    { title: "Total Customers", value: 3, icon: Users, href: "/admin/users", color: "text-purple-500", bgColor: "bg-gradient-to-br from-purple-500 to-purple-700" },
+    { title: "Processing Orders", value: 1, icon: ArrowRight, href: "#", color: "text-teal-500", bgColor: "bg-gradient-to-br from-teal-500 to-teal-700" },
+    { title: "Delivered Orders", value: 1, icon: CheckCircle, href: "#", color: "text-cyan-500", bgColor: "bg-gradient-to-br from-cyan-500 to-cyan-700" },
+    { title: "Canceled Orders", value: 0, icon: XCircle, href: "#", color: "text-red-500", bgColor: "bg-gradient-to-br from-red-500 to-red-700" },
+    { title: "Total Revenue", value: "$405.49", icon: DollarSign, href: "#", color: "text-indigo-500", bgColor: "bg-gradient-to-br from-indigo-500 to-indigo-700" },
+  ];
+
   return (
     <div className="container mx-auto px-4 py-8">
         <h1 className="text-4xl font-bold font-headline tracking-tight mb-8">
           Admin Dashboard
         </h1>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <a href="/admin/products" onClick={handleNav('/admin/products')}>
-                <Card className="hover:border-primary hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">
-                            Products
-                        </CardTitle>
-                        <Package className="h-5 w-5 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">Manage Store</div>
-                        <p className="text-xs text-muted-foreground">
-                            Add, edit, and delete products.
-                        </p>
-                    </CardContent>
-                </Card>
-            </a>
-
-            <a href="/admin/orders" onClick={handleNav('/admin/orders')}>
-                <Card className="hover:border-primary hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">
-                            Orders
-                        </CardTitle>
-                        <ShoppingCart className="h-5 w-5 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">View Orders</div>
-                        <p className="text-xs text-muted-foreground">
-                            Review and analyze customer orders.
-                        </p>
-                    </CardContent>
-                </Card>
-            </a>
-            
-            <a href="/admin/users" onClick={handleNav('/admin/users')}>
-                 <Card className="hover:border-primary hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">
-                            Customers
-                        </CardTitle>
-                        <Users className="h-5 w-5 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">Manage Users</div>
-                         <p className="text-xs text-muted-foreground">
-                            View and manage customer accounts.
-                        </p>
-                    </CardContent>
-                </Card>
-            </a>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {stats.map((stat) => (
+             <StatCard 
+                key={stat.title}
+                title={stat.title}
+                value={stat.value}
+                icon={stat.icon}
+                href={stat.href}
+                color={stat.color}
+                bgColor={stat.bgColor}
+              />
+          ))}
         </div>
     </div>
   );

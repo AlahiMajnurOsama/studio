@@ -3,7 +3,7 @@
 
 import { useState, useEffect, useRef, useTransition, useCallback } from 'react';
 import Link from 'next/link';
-import { ShoppingBag, Search, X, Sun, Moon, LogOut, User as UserIcon, Shield, LayoutDashboard } from 'lucide-react';
+import { ShoppingBag, Search, X, Sun, Moon, LogOut, User as UserIcon, Shield, LayoutDashboard, MoreVertical } from 'lucide-react';
 import { Button } from './ui/button';
 import Logo from './icons/Logo';
 import { Input } from './ui/input';
@@ -112,11 +112,9 @@ const UserProfileButton = () => {
         return (
             <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="relative h-10 w-10 rounded-full">
-                        <Avatar className="h-10 w-10">
-                            <AvatarImage src={user.photoURL || ''} alt={user.displayName || 'User'} />
-                            <AvatarFallback>{user.displayName?.charAt(0) || 'U'}</AvatarFallback>
-                        </Avatar>
+                    <Button variant="ghost" size="icon">
+                        <MoreVertical />
+                         <span className="sr-only">User Menu</span>
                     </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="w-56" align="end" forceMount>
