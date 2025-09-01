@@ -90,7 +90,6 @@ export default function AdminDashboardPage() {
     { title: "Processing Orders", value: 1, icon: ArrowRight, href: "/admin/orders", color: "text-teal-500", bgColor: "bg-gradient-to-br from-teal-500 to-teal-700" },
     { title: "Delivered Orders", value: 2, icon: CheckCircle, href: "/admin/orders", color: "text-cyan-500", bgColor: "bg-gradient-to-br from-cyan-500 to-cyan-700" },
     { title: "Cancelled Orders", value: 0, icon: XCircle, href: "/admin/orders", color: "text-red-500", bgColor: "bg-gradient-to-br from-red-500 to-red-700" },
-    { title: "Total Revenue", value: "$995.45", icon: DollarSign, href: "/admin/orders", color: "text-indigo-500", bgColor: "bg-gradient-to-br from-indigo-500 to-indigo-700" },
   ];
 
   return (
