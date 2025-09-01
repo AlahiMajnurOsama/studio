@@ -30,15 +30,9 @@ const statusConfig: Record<OrderStatus, { label: string; color: string; icon: Re
     Cancelled: { label: 'Cancelled', color: 'bg-red-500', icon: XCircle },
 };
 
-function OrderCa({ order, onStatusChange }: OrderCardProps) {
+export default function OrderCard({ order, onStatusChange }: OrderCardProps) {
     const [isExpanded, setIsExpanded] = useState(false);
     const currentStatus = statusConfig[order.status];
-}Line 34:          const [isExpanded, setIsExpanded] = useState(false);
-Line 35:          const currentStatus = statusConfig[order.status];
-Line 36:
-Line 37:          return (
-Line 38:              <Card>
-Line 39:                  <CardHeader>
 
     return (
         <Card>
@@ -69,7 +63,20 @@ Line 39:                  <CardHeader>
                     </div>
                     <div>
                         <h4 className="font-semibold text-sm mb-2">Items</h4>
-                        <div cla
+                        <div className="space-y-3">
+                            {order.items.map(item => (
+                                <div key={item.id} className="flex items-center gap-4 text-sm">
+                                    <Image src={item.product.image} alt={item.product.name} width={48} height={48} className="rounded-md" />
+                                    <div className="flex-grow">
+                                        <p className="font-semibold">{item.product.name}</p>
+                                        <p className="text-muted-foreground">Qty: {item.quantity}</p>
+                                    </div>
+                                    <p className="font-medium">${(item.pricePerItem * item.quantity).toFixed(2)}</p>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </CardContent>
             )}
             <CardFooter className="flex justify-between items-center bg-muted/50 p-4 rounded-b-lg">
                  <p className="font-bold text-lg">Total: ${order.total.toFixed(2)}</p>
@@ -81,4 +88,12 @@ Line 39:                  <CardHeader>
                         {(Object.keys(statusConfig) as OrderStatus[]).map(status => (
                             <DropdownMenuItem key={status} onSelect={() => onStatusChange(order.id, status)}>
                                 <statusConfig[status].icon className="mr-2 h-4 w-4" />
-                                <span>
+                                <span>Set to {statusConfig[status].label}</span>
+                            </DropdownMenuItem>
+                        ))}
+                    </DropdownMenuContent>
+                </DropdownMenu>
+            </CardFooter>
+        </Card>
+    );
+}
