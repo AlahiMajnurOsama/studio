@@ -38,6 +38,14 @@ export type UserDetails = {
   phone: string | null;
 };
 
+export type OrderStatus = 'Pending' | 'Processing' | 'Completed' | 'Cancelled';
+
+export type AIAnalysis = {
+    riskScore: number;
+    summary: string;
+    keyFactors: string[];
+};
+
 export type Order = {
   id: string;
   orderDate: Date;
@@ -50,6 +58,7 @@ export type Order = {
   };
   items: CartItem[];
   total: number;
-  status: 'Pending' | 'Completed' | 'Failed';
+  status: OrderStatus;
   paymentMethod: string;
+  aiAnalysis?: AIAnalysis;
 };

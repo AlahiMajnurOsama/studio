@@ -84,13 +84,13 @@ export default function AdminDashboardPage() {
 
   const stats = [
     { title: "Total Products", value: 16, icon: Package, href: "/admin/products", color: "text-blue-500", bgColor: "bg-gradient-to-br from-blue-500 to-blue-700" },
-    { title: "Total Orders", value: 2, icon: ShoppingCart, href: "/admin/orders", color: "text-green-500", bgColor: "bg-gradient-to-br from-green-500 to-green-700" },
+    { title: "Total Orders", value: 4, icon: ShoppingCart, href: "/admin/orders", color: "text-green-500", bgColor: "bg-gradient-to-br from-green-500 to-green-700" },
     { title: "Pending Orders", value: 1, icon: Clock, href: "/admin/orders", color: "text-yellow-500", bgColor: "bg-gradient-to-br from-yellow-500 to-yellow-700" },
-    { title: "Total Customers", value: 3, icon: Users, href: "/admin/users", color: "text-purple-500", bgColor: "bg-gradient-to-br from-purple-500 to-purple-700" },
+    { title: "Total Customers", value: 4, icon: Users, href: "/admin/users", color: "text-purple-500", bgColor: "bg-gradient-to-br from-purple-500 to-purple-700" },
     { title: "Processing Orders", value: 1, icon: ArrowRight, href: "/admin/orders", color: "text-teal-500", bgColor: "bg-gradient-to-br from-teal-500 to-teal-700" },
-    { title: "Delivered Orders", value: 1, icon: CheckCircle, href: "/admin/orders", color: "text-cyan-500", bgColor: "bg-gradient-to-br from-cyan-500 to-cyan-700" },
-    { title: "Canceled Orders", value: 0, icon: XCircle, href: "/admin/orders", color: "text-red-500", bgColor: "bg-gradient-to-br from-red-500 to-red-700" },
-    { title: "Total Revenue", value: "$405.49", icon: DollarSign, href: "/admin/orders", color: "text-indigo-500", bgColor: "bg-gradient-to-br from-indigo-500 to-indigo-700" },
+    { title: "Delivered Orders", value: 2, icon: CheckCircle, href: "/admin/orders", color: "text-cyan-500", bgColor: "bg-gradient-to-br from-cyan-500 to-cyan-700" },
+    { title: "Cancelled Orders", value: 0, icon: XCircle, href: "/admin/orders", color: "text-red-500", bgColor: "bg-gradient-to-br from-red-500 to-red-700" },
+    { title: "Total Revenue", value: "$995.45", icon: DollarSign, href: "/admin/orders", color: "text-indigo-500", bgColor: "bg-gradient-to-br from-indigo-500 to-indigo-700" },
   ];
 
   return (
