@@ -21,7 +21,7 @@ import Image from 'next/image';
 
 interface OrderCardProps {
   order: Order;
-  onStatusChange: (orderId: string, newStatus: OrderStatus) => void;
+  onStatusChange?: (orderId: string, newStatus: OrderStatus) => void;
 }
 
 const DetailRow = ({ label, value, canCopy = false }: { label: string; value?: string | number; canCopy?: boolean }) => {
@@ -65,11 +65,13 @@ export default function OrderCard({ order, onStatusChange }: OrderCardProps) {
   const currentStatus = statusConfig[order.status];
 
   const handleStatusChange = (newStatus: OrderStatus) => {
-    onStatusChange(order.id, newStatus);
-    toast({
-        title: "Order Status Updated",
-        description: `Order #${order.id.slice(-6).toUpperCase()} is now ${newStatus}.`,
-    });
+    if (onStatusChange) {
+      onStatusChange(order.id, newStatus);
+      toast({
+          title: "Order Status Updated",
+          description: `Order #${order.id.slice(-6).toUpperCase()} is now ${newStatus}.`,
+      });
+    }
   }
 
   const riskLevel = order.aiAnalysis 
@@ -95,19 +97,21 @@ export default function OrderCard({ order, onStatusChange }: OrderCardProps) {
                 </CardDescription>
             </div>
              <div className="flex items-center gap-2">
-                <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                        <Button variant="outline">Update Status</Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                        {(Object.keys(statusConfig) as OrderStatus[]).map(status => (
-                             <DropdownMenuItem key={status} onSelect={() => handleStatusChange(status)}>
-                                <statusConfig[status].icon className="mr-2 h-4 w-4" />
-                                <span>{statusConfig[status].label}</span>
-                            </DropdownMenuItem>
-                        ))}
-                    </DropdownMenuContent>
-                </DropdownMenu>
+                {onStatusChange && (
+                  <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                          <Button variant="outline">Update Status</Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                          {(Object.keys(statusConfig) as OrderStatus[]).map(status => (
+                              <DropdownMenuItem key={status} onSelect={() => handleStatusChange(status)}>
+                                  <statusConfig[status].icon className="mr-2 h-4 w-4" />
+                                  <span>{statusConfig[status].label}</span>
+                              </DropdownMenuItem>
+                          ))}
+                      </DropdownMenuContent>
+                  </DropdownMenu>
+                )}
                 <Button variant="ghost" size="icon" onClick={() => setIsExpanded(!isExpanded)}>
                     <ChevronDown className={cn("h-5 w-5 transition-transform", isExpanded && "rotate-180")} />
                 </Button>
