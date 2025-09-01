@@ -46,26 +46,24 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
     setIsSettingsLoading(false);
   }, []);
 
-  const updateSettings = useCallback((newSettings: Partial<Settings>) => {
-    setSettings(prevSettings => {
-      const updatedSettings = { ...prevSettings, ...newSettings };
-      try {
-        localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(updatedSettings));
-        toast({
-            title: "Settings Updated!",
-            description: "Your changes have been saved locally."
-        })
-      } catch (error) {
-        console.error("Failed to save settings to localStorage", error);
-         toast({
-            title: "Error",
-            description: "Could not save settings.",
-            variant: "destructive"
-        })
-      }
-      return updatedSettings;
-    });
-  }, [toast]);
+  const updateSettings = useCallback(async (newSettings: Partial<Settings>) => {
+    try {
+      const updatedSettings = { ...settings, ...newSettings };
+      setSettings(updatedSettings);
+      localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(updatedSettings));
+      toast({
+        title: "Settings Updated!",
+        description: "Your changes have been saved locally."
+      });
+    } catch (error) {
+      console.error("Failed to save settings to localStorage", error);
+      toast({
+        title: "Error",
+        description: "Could not save settings.",
+        variant: "destructive"
+      });
+    }
+  }, [settings, toast]);
 
   return (
     <SettingsContext.Provider value={{ ...settings, updateSettings, isSettingsLoading }}>
