@@ -7,9 +7,10 @@ import { AppProvider } from '@/context/AppContext';
 import PageLoader from '@/components/PageLoader';
 import { AuthProvider } from '@/hooks/useAuth';
 import { CartProvider } from '@/hooks/useCart';
+import { SettingsProvider } from '@/context/SettingsContext';
 
 export const metadata: Metadata = {
-  title: 'Shohure',
+  title: 'ChromaShop',
   description: 'A vibrant and modern e-commerce experience.',
 };
 
@@ -34,15 +35,17 @@ export default function RootLayout({
       </head>
       <body className="font-body antialiased min-h-screen flex flex-col">
         <AppProvider>
-          <AuthProvider>
-            <WishlistProvider>
-              <CartProvider>
-                <Header />
-                <main className="flex-grow pt-20 animate-fade-in">{children}</main>
-                <PageLoader />
-              </CartProvider>
-            </WishlistProvider>
-          </AuthProvider>
+          <SettingsProvider>
+            <AuthProvider>
+              <WishlistProvider>
+                <CartProvider>
+                  <Header />
+                  <main className="flex-grow pt-20 animate-fade-in">{children}</main>
+                  <PageLoader />
+                </CartProvider>
+              </WishlistProvider>
+            </AuthProvider>
+          </SettingsProvider>
         </AppProvider>
         <Toaster />
       </body>

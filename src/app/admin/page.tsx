@@ -7,7 +7,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Skeleton } from "@/components/ui/skeleton";
 import Link from "next/link";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Package, Users, ArrowRight, DollarSign, Tag } from "lucide-react";
+import { Package, Users, ArrowRight, DollarSign, Tag, Settings } from "lucide-react";
 import { useNavigation } from "@/hooks/useNavigation";
 import { cn } from "@/lib/utils";
 
@@ -91,9 +91,15 @@ export default function AdminDashboardPage() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-        <h1 className="text-4xl font-bold font-headline tracking-tight mb-8">
-          Admin Dashboard
-        </h1>
+        <div className="flex justify-between items-center mb-8">
+            <h1 className="text-4xl font-bold font-headline tracking-tight">
+            Admin Dashboard
+            </h1>
+            <Button variant="outline" onClick={handleNav('/admin/settings')}>
+                <Settings className="mr-2 h-5 w-5" />
+                Site Settings
+            </Button>
+        </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {stats.map((stat) => (

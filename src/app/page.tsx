@@ -27,6 +27,7 @@ import {
 } from "@/components/ui/carousel";
 import { useAppContext } from "@/context/AppContext";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useSettings } from "@/context/SettingsContext";
 
 export default function Home() {
   const {
@@ -39,6 +40,8 @@ export default function Home() {
     toggleCategory,
     clearFilters,
   } = useAppContext();
+
+  const { heroImageUrls } = useSettings();
 
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
@@ -88,21 +91,21 @@ export default function Home() {
   const heroBanners = [
     {
       id: 1,
-      image: "https://picsum.photos/seed/hero1/1200/400",
+      image: heroImageUrls[0],
       title: "Elevate Your Tech",
       subtitle: "Discover the latest in smart devices and accessories.",
       hint: "modern electronics",
     },
     {
       id: 2,
-      image: "https://picsum.photos/seed/hero2/1200/400",
+      image: heroImageUrls[1],
       title: "Refresh Your Wardrobe",
       subtitle: "Shop the new season's trends in fashion.",
       hint: "stylish clothing",
     },
     {
       id: 3,
-      image: "https://picsum.photos/seed/hero3/1200/400",
+      image: heroImageUrls[2],
       title: "Create Your Sanctuary",
       subtitle: "Find beautiful decor for your home and living space.",
       hint: "cozy home",

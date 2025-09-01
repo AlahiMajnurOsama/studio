@@ -1,6 +1,6 @@
 import type { SVGProps } from "react";
 
-const Logo = (props: SVGProps<SVGSVGElement>) => (
+const Logo = ({ brandName, ...props }: SVGProps<SVGSVGElement> & { brandName: string }) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     viewBox="0 0 200 50"
@@ -23,7 +23,7 @@ const Logo = (props: SVGProps<SVGSVGElement>) => (
       fill="url(#logo-gradient)"
       letterSpacing="-1"
     >
-      Shohure
+      {brandName}
     </text>
   </svg>
 );

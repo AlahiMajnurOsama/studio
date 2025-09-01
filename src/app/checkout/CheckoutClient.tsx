@@ -19,6 +19,7 @@ import Link from "next/link";
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import { format } from 'date-fns';
+import { useSettings } from "@/context/SettingsContext";
 
 type CheckoutStep = "payment" | "success";
 
@@ -28,6 +29,7 @@ export default function CheckoutClient() {
   const router = useRouter();
   const { toast } = useToast();
   const { setPageLoading } = useAppContext();
+  const { brandName, receiptThanksText } = useSettings();
   const [isProcessing, startTransition] = useTransition();
 
   const [step, setStep] = useState<CheckoutStep>("payment");
@@ -103,7 +105,7 @@ export default function CheckoutClient() {
             format: [canvas.width, canvas.height]
         });
         pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
-        pdf.save(`ChromaShop-Receipt-${completedOrder?.id.slice(-6).toUpperCase()}.pdf`);
+        pdf.save(`${brandName}-Receipt-${completedOrder?.id.slice(-6).toUpperCase()}.pdf`);
     } catch (error) {
         console.error("Error generating PDF:", error);
         toast({
@@ -161,7 +163,7 @@ export default function CheckoutClient() {
         <div ref={receiptRef} className="p-8 border rounded-lg bg-card text-card-foreground shadow-lg font-sans">
             <div className="flex justify-between items-start mb-8">
                 <div>
-                    <h2 className="text-2xl font-bold text-primary">ChromaShop</h2>
+                    <h2 className="text-2xl font-bold text-primary">{brandName}</h2>
                     <p className="text-muted-foreground text-sm">Order Invoice</p>
                 </div>
                 <div className="text-right">
@@ -223,8 +225,8 @@ export default function CheckoutClient() {
             </div>
 
             <div className="text-center mt-8 text-xs text-muted-foreground">
-                <p>Thank you for your purchase!</p>
-                <p>ChromaShop</p>
+                <p>{receiptThanksText}</p>
+                <p>{brandName}</p>
             </div>
         </div>
 
@@ -252,7 +254,7 @@ export default function CheckoutClient() {
                     <CardContent className="p-4 space-y-4">
                         <div className="max-h-64 overflow-y-auto space-y-4 pr-2">
                             {cart.map(item => {
-                                const itemPrice = item.product.price + (item.selectedVariant?.priceModifier || 0);
+                                const itemPrice = item.pricePerItem;
                                 return (
                                     <div key={item.id} className="flex items-center gap-4">
                                         <Image 

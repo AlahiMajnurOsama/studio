@@ -24,6 +24,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import PackageOpen from './icons/PackageOpen';
 import { useCart } from '@/hooks/useCart';
 import Cart from './Cart';
+import { useSettings } from '@/context/SettingsContext';
 
 
 const ThemeSwitcher = () => {
@@ -162,6 +163,7 @@ const Header = () => {
   const [isPending, startTransition] = useTransition();
   const { totalItems } = useCart();
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const { brandName } = useSettings();
   
   useEffect(() => {
     setPageLoading(isPending);
@@ -182,7 +184,7 @@ const Header = () => {
         <div className="flex items-center justify-between h-20">
           <a href="/" onClick={handleNav('/')} className="flex items-center space-x-2">
             <PackageOpen className="w-8 h-8 text-primary" />
-            <Logo />
+            <Logo brandName={brandName} />
           </a>
           
           <div className="hidden md:block w-full max-w-md">
