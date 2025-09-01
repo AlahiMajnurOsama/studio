@@ -1,13 +1,13 @@
 
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import type { Product } from "@/lib/types";
 import { products as localProducts } from "@/lib/data";
 import { Button } from "@/components/ui/button";
-import { PlusCircle, Edit, Trash2, ArrowLeft, MoreVertical } from "lucide-react";
+import { PlusCircle, Edit, Trash2, ArrowLeft } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -24,37 +24,27 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import ProductForm from "../ProductForm";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
-import Link from "next/link";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { useAppContext } from "@/context/AppContext";
+import { useNavigation } from "@/hooks/useNavigation";
 
 export default function AdminProductsPage() {
-  const { user, loading: authLoading, isAdmin } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
+  const { handleNav } = useNavigation();
+  
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
-  const { setPageLoading } = useAppContext();
-  const [isPending, startTransition] = useTransition();
 
   useEffect(() => {
-    setPageLoading(isPending);
-  }, [isPending, setPageLoading]);
-  
-  useEffect(() => {
-    if (!authLoading) {
-      if (!user) {
-        startTransition(() => {
-          router.push("/signin");
-        });
-      }
+    if (!authLoading && !user) {
+      router.push("/signin");
     }
   }, [user, authLoading, router]);
 
@@ -96,13 +86,6 @@ export default function AdminProductsPage() {
     });
     setIsDialogOpen(false);
   };
-  
-  const handleBackNav = (e: React.MouseEvent) => {
-    e.preventDefault();
-    startTransition(() => {
-        router.push('/admin');
-    });
-  };
 
   if (authLoading || !user) {
     return (
@@ -117,10 +100,8 @@ export default function AdminProductsPage() {
   return (
     <div className="container mx-auto px-4 py-8">
        <div className="flex items-center gap-4 mb-8">
-        <Button variant="outline" size="icon" asChild>
-            <a href="/admin" onClick={handleBackNav}>
-                <ArrowLeft />
-            </a>
+        <Button variant="outline" size="icon" onClick={handleNav('/admin')}>
+            <ArrowLeft />
         </Button>
         <h1 className="text-3xl md:text-4xl font-bold font-headline tracking-tight">
           Manage Products

@@ -1,18 +1,17 @@
 
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import type { Order } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
-import Link from "next/link";
 import OrderCard from "./OrderCard";
-import { useAppContext } from "@/context/AppContext";
 import { products as allProducts } from "@/lib/data";
+import { useNavigation } from "@/hooks/useNavigation";
+
 
 const generateMockOrders = (): Order[] => {
     const getRandomItems = () => {
@@ -53,24 +52,16 @@ const generateMockOrders = (): Order[] => {
 
 
 export default function AdminOrdersPage() {
-  const { user, loading: authLoading, isAdmin } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const router = useRouter();
+  const { handleNav } = useNavigation();
+
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
-  const { setPageLoading } = useAppContext();
-  const [isPending, startTransition] = useTransition();
 
   useEffect(() => {
-    setPageLoading(isPending);
-  }, [isPending, setPageLoading]);
-  
-  useEffect(() => {
-     if (!authLoading) {
-      if (!user) {
-        startTransition(() => {
-          router.push("/signin");
-        });
-      }
+     if (!authLoading && !user) {
+        router.push("/signin");
     }
   }, [user, authLoading, router]);
 
@@ -87,12 +78,6 @@ export default function AdminOrdersPage() {
     }
   }, [user]);
 
-  const handleBackNav = (e: React.MouseEvent) => {
-    e.preventDefault();
-    startTransition(() => {
-        router.push('/admin');
-    });
-  };
 
   if (authLoading || !user) {
     return (
@@ -107,10 +92,8 @@ export default function AdminOrdersPage() {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="flex items-center gap-4 mb-8">
-        <Button variant="outline" size="icon" asChild>
-          <a href="/admin" onClick={handleBackNav}>
+        <Button variant="outline" size="icon" onClick={handleNav('/admin')}>
             <ArrowLeft />
-          </a>
         </Button>
         <h1 className="text-3xl md:text-4xl font-bold font-headline tracking-tight">
           Transactions

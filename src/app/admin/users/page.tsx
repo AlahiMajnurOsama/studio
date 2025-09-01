@@ -1,11 +1,10 @@
 
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { UserRecord } from "firebase-admin/auth";
 import { useAuth } from "@/hooks/useAuth";
-import { useAppContext } from "@/context/AppContext";
 import { useToast } from "@/hooks/use-toast";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -14,7 +13,6 @@ import * as z from "zod";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ArrowLeft, Trash2, MoreVertical, Edit, KeyRound, ShieldCheck, ShieldOff, Loader2, CheckCircle } from "lucide-react";
-import Link from "next/link";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -24,7 +22,6 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import {
   Dialog,
@@ -53,6 +50,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 
 import { deleteUser, getAllUsers, updateUser, setUserAdminStatus, generatePasswordResetLink } from "./actions";
+import { useNavigation } from "@/hooks/useNavigation";
 
 
 const editUserSchema = z.object({
@@ -67,8 +65,7 @@ export default function AdminUsersPage() {
   const { user, loading: authLoading, isAdmin } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
-  const { setPageLoading } = useAppContext();
-  const [isPending, startTransition] = useTransition();
+  const { handleNav } = useNavigation();
 
   const [users, setUsers] = useState<UserRecord[]>([]);
   const [loading, setLoading] = useState(true);
@@ -91,19 +88,11 @@ export default function AdminUsersPage() {
 
 
   useEffect(() => {
-    setPageLoading(isPending);
-  }, [isPending, setPageLoading]);
-
-  useEffect(() => {
     if (!authLoading) {
       if (!user) {
-        startTransition(() => {
-          router.push("/signin");
-        });
+        router.push("/signin");
       } else if (!isAdmin) {
-        startTransition(() => {
-          router.push("/");
-        });
+        router.push("/");
       }
     }
   }, [user, authLoading, isAdmin, router]);
@@ -127,7 +116,7 @@ export default function AdminUsersPage() {
     if (user && isAdmin) {
       fetchUsers();
     }
-  }, [user, isAdmin]);
+  }, [user, isAdmin, toast]);
 
   const handleDeleteUser = async (uid: string) => {
     const result = await deleteUser(uid);
@@ -191,12 +180,6 @@ export default function AdminUsersPage() {
     }
   }
 
-   const handleBackNav = (e: React.MouseEvent) => {
-    e.preventDefault();
-    startTransition(() => {
-        router.push('/admin');
-    });
-  };
 
    if (authLoading || !user || !isAdmin) {
     return (
@@ -212,10 +195,8 @@ export default function AdminUsersPage() {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="flex items-center gap-4 mb-8">
-        <Button variant="outline" size="icon" asChild>
-          <a href="/admin" onClick={handleBackNav}>
+        <Button variant="outline" size="icon" onClick={handleNav('/admin')}>
             <ArrowLeft />
-          </a>
         </Button>
         <h1 className="text-3xl md:text-4xl font-bold font-headline tracking-tight">
           Manage Users
