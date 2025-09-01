@@ -33,7 +33,7 @@ const statusConfig: Record<OrderStatus, { label: string; color: string; icon: Re
 function OrderCard({ order, onStatusChange }: OrderCardProps) {
     const [isExpanded, setIsExpanded] = useState(false);
     const currentStatus = statusConfig[order.status];
-
+}
     return (
         <Card>
             <CardHeader>
