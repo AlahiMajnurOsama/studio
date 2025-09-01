@@ -23,7 +23,7 @@ import { format } from 'date-fns';
 type CheckoutStep = "payment" | "success";
 
 export default function CheckoutClient() {
-  const { cart, subtotal, totalItems, clearCart } = useCart();
+  const { cart, total, discount, appliedCoupon, subtotal, totalItems, clearCart } = useCart();
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
@@ -62,8 +62,15 @@ export default function CheckoutClient() {
         email: user.email || 'no-email@example.com',
         phone: user.phoneNumber || null,
       };
+      
+      const orderData = {
+          ...userDetails,
+          cart,
+          total,
+          appliedCoupon: appliedCoupon ? { code: appliedCoupon.code, discountAmount: discount } : undefined
+      }
 
-      const result = await createOrder(userDetails, cart, subtotal);
+      const result = await createOrder(orderData);
 
       if (result.success && result.order) {
         setCompletedOrder(result.order);
@@ -201,8 +208,14 @@ export default function CheckoutClient() {
             <div className="space-y-2 border-t mt-6 pt-6">
                  <div className="flex justify-between font-medium text-sm">
                     <span className="text-muted-foreground">Subtotal</span>
-                    <span>${completedOrder.total.toFixed(2)}</span>
+                    <span>${(completedOrder.total + (completedOrder.appliedCoupon?.discountAmount || 0)).toFixed(2)}</span>
                 </div>
+                 {completedOrder.appliedCoupon && (
+                    <div className="flex justify-between font-medium text-sm text-green-500">
+                        <span className="text-muted-foreground">Discount ({completedOrder.appliedCoupon.code})</span>
+                        <span>-${completedOrder.appliedCoupon.discountAmount.toFixed(2)}</span>
+                    </div>
+                 )}
                  <div className="flex justify-between font-bold text-lg">
                     <span>Total</span>
                     <span>${completedOrder.total.toFixed(2)}</span>
@@ -259,9 +272,21 @@ export default function CheckoutClient() {
                             })}
                         </div>
                         <Separator />
-                        <div className="flex justify-between font-bold text-lg">
-                            <span>Total</span>
-                            <span>${subtotal.toFixed(2)}</span>
+                        <div className="space-y-2 text-sm">
+                            <div className="flex justify-between">
+                                <span className="text-muted-foreground">Subtotal</span>
+                                <span>${subtotal.toFixed(2)}</span>
+                            </div>
+                            {appliedCoupon && (
+                                <div className="flex justify-between text-green-500">
+                                <span className="text-muted-foreground">Discount ({appliedCoupon.code})</span>
+                                <span>-${discount.toFixed(2)}</span>
+                                </div>
+                            )}
+                            <div className="flex justify-between font-bold text-lg">
+                                <span>Total</span>
+                                <span>${total.toFixed(2)}</span>
+                            </div>
                         </div>
                     </CardContent>
                 </Card>

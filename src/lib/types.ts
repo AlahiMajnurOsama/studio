@@ -1,13 +1,9 @@
 
+
 export type ProductVariant = {
   name: string;
   priceModifier?: number;
   sizes?: string[];
-};
-
-export type ColorVariant = {
-  color: string; // hex code
-  image: string; // URL
 };
 
 export type Product = {
@@ -17,7 +13,6 @@ export type Product = {
   price: number;
   image: string; // Main/default image
   category?: 'Health & Beauty' | 'Electronics' | 'Fashion' | 'Home & Living' | 'Groceries';
-  colorVariants?: ColorVariant[];
   sizes?: string[];
   variants?: ProductVariant[];
   popularity: number; // 0-100
@@ -27,7 +22,7 @@ export type CartItem = {
   id: string; // A unique ID for the cart item, e.g., `${product.id}-${color}-${size}`
   product: Product;
   quantity: number;
-  selectedColor?: ColorVariant | null;
+  selectedColor?: null;
   selectedSize?: string | null;
   selectedVariant?: ProductVariant | null;
   pricePerItem: number;
@@ -40,6 +35,18 @@ export type UserDetails = {
 };
 
 export type OrderStatus = 'Pending' | 'Processing' | 'Completed' | 'Cancelled';
+
+export type Coupon = {
+  code: string; // e.g., "SUMMER20"
+  type: 'percentage' | 'fixed';
+  value: number;
+  scope: 'product' | 'order';
+  productId?: string; // only if scope is 'product'
+  minSpend?: number;
+  description: string;
+  isActive: boolean;
+};
+
 
 export type Order = {
   id: string;
@@ -55,5 +62,9 @@ export type Order = {
   total: number;
   status: OrderStatus;
   paymentMethod: string;
+  appliedCoupon?: {
+    code: string;
+    discountAmount: number;
+  };
 };
 

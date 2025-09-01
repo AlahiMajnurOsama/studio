@@ -8,7 +8,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useNavigation } from "@/hooks/useNavigation";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Tag } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import {
@@ -22,6 +22,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 const mockTransactions: Order[] = [
   {
@@ -32,6 +33,7 @@ const mockTransactions: Order[] = [
     total: 285.49,
     status: 'Completed',
     paymentMethod: 'Credit Card',
+    appliedCoupon: { code: 'SAVE10', discountAmount: 31.72 }
   },
   {
     id: 'mock_ord_3',
@@ -115,6 +117,7 @@ export default function AdminTransactionsPage() {
                 ))}
             </div>
            ) : (
+            <TooltipProvider>
              <Table>
                 <TableHeader>
                     <TableRow>
@@ -128,7 +131,21 @@ export default function AdminTransactionsPage() {
                 <TableBody>
                     {transactions.map((order) => (
                     <TableRow key={order.id}>
-                        <TableCell className="font-medium">#{order.id.slice(-6).toUpperCase()}</TableCell>
+                        <TableCell className="font-medium flex items-center gap-2">
+                            <span>#{order.id.slice(-6).toUpperCase()}</span>
+                            {order.appliedCoupon && (
+                                <Tooltip>
+                                    <TooltipTrigger>
+                                        <Badge variant="secondary" className="bg-orange-500/20 text-orange-500 border-orange-500/30">
+                                            <Tag className="h-3 w-3" />
+                                        </Badge>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                        <p>Coupon: <span className="font-semibold">{order.appliedCoupon.code}</span> (-${order.appliedCoupon.discountAmount.toFixed(2)})</p>
+                                    </TooltipContent>
+                                </Tooltip>
+                            )}
+                        </TableCell>
                         <TableCell>{order.customer.name}</TableCell>
                         <TableCell>{format(new Date(order.orderDate), 'MMM dd, yyyy')}</TableCell>
                         <TableCell className="text-right">${order.total.toFixed(2)}</TableCell>
@@ -141,6 +158,7 @@ export default function AdminTransactionsPage() {
                     ))}
                 </TableBody>
             </Table>
+            </TooltipProvider>
            )}
            {!loading && transactions.length === 0 && (
             <div className="text-center p-8 text-muted-foreground">

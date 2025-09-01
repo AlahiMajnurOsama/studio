@@ -1,5 +1,6 @@
 
-import type { Product } from './types';
+
+import type { Product, Coupon } from './types';
 
 export const products: Product[] = [
   {
@@ -155,4 +156,42 @@ export const products: Product[] = [
     category: 'Health & Beauty',
     popularity: 72,
   },
+];
+
+
+export const coupons: Coupon[] = [
+  {
+    code: 'SAVE10',
+    type: 'percentage',
+    value: 10,
+    scope: 'order',
+    minSpend: 50,
+    description: '10% off on orders over $50',
+    isActive: true,
+  },
+  {
+    code: 'AURA20',
+    type: 'percentage',
+    value: 20,
+    scope: 'product',
+    productId: '1',
+    description: '20% off Aura Headphones',
+    isActive: true,
+  },
+  {
+    code: '5OFF',
+    type: 'fixed',
+    value: 5,
+    scope: 'order',
+    description: '$5 off any order',
+    isActive: true,
+  },
+  {
+    code: 'EXPIRED',
+    type: 'percentage',
+    value: 15,
+    scope: 'order',
+    description: 'An expired coupon for testing',
+    isActive: false,
+  }
 ];

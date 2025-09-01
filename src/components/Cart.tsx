@@ -6,12 +6,14 @@ import { useCart } from '@/hooks/useCart';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetFooter } from '@/components/ui/sheet';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Trash2, Plus, Minus } from 'lucide-react';
+import { Trash2, Plus, Minus, Tag, XCircle } from 'lucide-react';
 import { Separator } from './ui/separator';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { useTransition, useEffect } from 'react';
+import { useTransition, useEffect, useState } from 'react';
 import { useAppContext } from '@/context/AppContext';
+import { Input } from './ui/input';
+import { Badge } from './ui/badge';
 
 interface CartProps {
   isOpen: boolean;
@@ -19,10 +21,11 @@ interface CartProps {
 }
 
 export default function Cart({ isOpen, onOpenChange }: CartProps) {
-  const { cart, removeFromCart, updateQuantity, subtotal, totalItems, clearCart } = useCart();
+  const { cart, removeFromCart, updateQuantity, subtotal, totalItems, clearCart, applyCoupon, removeCoupon, appliedCoupon, discount, total } = useCart();
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const { setPageLoading } = useAppContext();
+  const [couponCode, setCouponCode] = useState('');
 
   useEffect(() => {
     setPageLoading(isPending);
@@ -34,6 +37,13 @@ export default function Cart({ isOpen, onOpenChange }: CartProps) {
       router.push('/checkout');
     });
   };
+
+  const handleApplyCoupon = () => {
+    if(couponCode.trim()) {
+        applyCoupon(couponCode.trim());
+        setCouponCode('');
+    }
+  }
 
   return (
     <Sheet open={isOpen} onOpenChange={onOpenChange}>
@@ -90,13 +100,46 @@ export default function Cart({ isOpen, onOpenChange }: CartProps) {
               </div>
             </ScrollArea>
             <SheetFooter className="mt-auto pr-6 -mr-6 border-t pt-4 space-y-4">
-               <Button variant="outline" className='w-full' onClick={clearCart}>
-                    Clear Cart
-                </Button>
+               <div className='space-y-2'>
+                    <div className="flex gap-2">
+                        <Input 
+                            placeholder="Discount code" 
+                            value={couponCode} 
+                            onChange={(e) => setCouponCode(e.target.value)}
+                            disabled={!!appliedCoupon}
+                        />
+                        <Button onClick={handleApplyCoupon} disabled={!!appliedCoupon || !couponCode.trim()}>
+                            Apply
+                        </Button>
+                    </div>
+                    {appliedCoupon && (
+                        <div className='flex justify-between items-center text-sm'>
+                            <Badge variant="secondary" className='gap-2'>
+                                <Tag className='h-3 w-3' /> {appliedCoupon.code}
+                            </Badge>
+                             <Button variant="ghost" size="sm" className='text-red-500 hover:text-red-500' onClick={removeCoupon}>
+                                <XCircle className="mr-1.5 h-4 w-4" />
+                                Remove
+                            </Button>
+                        </div>
+                    )}
+               </div>
                <Separator />
-                <div className="flex justify-between font-semibold text-lg">
-                    <span>Subtotal</span>
-                    <span>${subtotal.toFixed(2)}</span>
+                <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                        <span className="text-muted-foreground">Subtotal</span>
+                        <span>${subtotal.toFixed(2)}</span>
+                    </div>
+                    {discount > 0 && (
+                        <div className="flex justify-between text-green-500">
+                            <span className="text-muted-foreground">Discount</span>
+                            <span>-${discount.toFixed(2)}</span>
+                        </div>
+                    )}
+                     <div className="flex justify-between font-semibold text-lg">
+                        <span>Total</span>
+                        <span>${total.toFixed(2)}</span>
+                    </div>
                 </div>
                 <Button size="lg" className="w-full font-bold" onClick={handleCheckout} disabled={isPending}>
                     Proceed to Checkout
