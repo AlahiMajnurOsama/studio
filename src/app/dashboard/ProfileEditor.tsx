@@ -17,7 +17,7 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 
 const profileSchema = z.object({
@@ -46,26 +46,22 @@ export default function ProfileEditor({ user }: ProfileEditorProps) {
 
   const handleUpdateProfile = async (values: ProfileFormValues) => {
     setIsSubmitting(true);
-    // Mock update
-    setTimeout(() => {
-       toast({
-        title: "Success! (Demo)",
-        description: "Your profile has been updated.",
-      });
-      setIsSubmitting(false);
-    }, 500)
+    // This is a mock update. We removed the artificial delay.
+    toast({
+      title: "Success! (Demo)",
+      description: "Your profile has been updated.",
+    });
+    setIsSubmitting(false);
   };
 
   const handlePasswordReset = async () => {
     setIsResetting(true);
-    // Mock password reset
-    setTimeout(() => {
-        toast({
-          title: "Password Reset Email Sent (Demo)",
-          description: "Check your inbox to reset your password.",
-        });
-        setIsResetting(false);
-    }, 500)
+    // This is a mock password reset. We removed the artificial delay.
+    toast({
+      title: "Password Reset Email Sent (Demo)",
+      description: "Check your inbox to reset your password.",
+    });
+    setIsResetting(false);
   }
 
   return (

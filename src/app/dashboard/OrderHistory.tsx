@@ -106,12 +106,9 @@ export default function OrderHistory({ userEmail }: OrderHistoryProps) {
 
       setLoading(true);
       try {
-        // Simulate API call
-        setTimeout(() => {
-          const ordersData = generateMockOrdersForUser(userEmail);
-          setOrders(ordersData);
-          setLoading(false);
-        }, 500);
+        // We removed the artificial delay to make it faster
+        const ordersData = generateMockOrdersForUser(userEmail);
+        setOrders(ordersData);
       } catch (error) {
         console.error("Error fetching user orders: ", error);
         toast({
@@ -119,6 +116,7 @@ export default function OrderHistory({ userEmail }: OrderHistoryProps) {
           description: "Failed to fetch your order history.",
           variant: "destructive",
         });
+      } finally {
         setLoading(false);
       }
     };
@@ -129,9 +127,7 @@ export default function OrderHistory({ userEmail }: OrderHistoryProps) {
   if (loading) {
     return (
       <div className="space-y-4">
-        {Array.from({ length: 3 }).map((_, i) => (
-          <Skeleton key={i} className="h-48 w-full" />
-        ))}
+        <Skeleton className="h-48 w-full" />
       </div>
     );
   }
