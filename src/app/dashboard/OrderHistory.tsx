@@ -2,11 +2,18 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import type { Order } from "@/lib/types";
+import type { Order, OrderStatus } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
-import OrderCard from "@/app/admin/orders/OrderCard";
 import { products as allProducts } from "@/lib/data";
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import { format } from "date-fns";
+import Image from "next/image";
+import { cn } from "@/lib/utils";
+import { CheckCircle, Clock, Truck, XCircle } from "lucide-react";
+
 
 interface OrderHistoryProps {
   userEmail: string;
@@ -41,6 +48,52 @@ const generateMockOrdersForUser = (userEmail: string): Order[] => {
         total,
     }];
 };
+
+const statusConfig: Record<OrderStatus, { label: string; color: string; icon: React.ElementType }> = {
+    Pending: { label: 'Pending', color: 'bg-yellow-500', icon: Clock },
+    Processing: { label: 'Processing', color: 'bg-blue-500', icon: Truck },
+    Completed: { label: 'Completed', color: 'bg-green-600', icon: CheckCircle },
+    Cancelled: { label: 'Cancelled', color: 'bg-red-500', icon: XCircle },
+};
+
+function UserOrderCard({ order }: { order: Order }) {
+    const currentStatus = statusConfig[order.status];
+
+    return (
+        <Card>
+            <CardHeader>
+                <div className="flex justify-between items-start">
+                    <div>
+                        <CardTitle className="text-lg">Order #{order.id.slice(-6).toUpperCase()}</CardTitle>
+                        <p className="text-sm text-muted-foreground">{format(new Date(order.orderDate), 'MMMM dd, yyyy')}</p>
+                    </div>
+                     <Badge variant="default" className={cn("text-white text-xs", currentStatus.color)}>
+                        <currentStatus.icon className="h-3 w-3 mr-1.5" />
+                        {currentStatus.label}
+                    </Badge>
+                </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+                <Separator />
+                <div className="space-y-3">
+                    {order.items.map(item => (
+                        <div key={item.id} className="flex items-center gap-4 text-sm">
+                            <Image src={item.product.image} alt={item.product.name} width={48} height={48} className="rounded-md" />
+                            <div className="flex-grow">
+                                <p className="font-semibold">{item.product.name}</p>
+                                <p className="text-muted-foreground">Qty: {item.quantity}</p>
+                            </div>
+                            <p className="font-medium">${(item.pricePerItem * item.quantity).toFixed(2)}</p>
+                        </div>
+                    ))}
+                </div>
+            </CardContent>
+            <CardFooter className="flex justify-end bg-muted/50 p-4 rounded-b-lg">
+                <p className="font-bold text-lg">Total: ${order.total.toFixed(2)}</p>
+            </CardFooter>
+        </Card>
+    )
+}
 
 export default function OrderHistory({ userEmail }: OrderHistoryProps) {
   const [orders, setOrders] = useState<Order[]>([]);
@@ -77,7 +130,7 @@ export default function OrderHistory({ userEmail }: OrderHistoryProps) {
     return (
       <div className="space-y-4">
         {Array.from({ length: 3 }).map((_, i) => (
-          <Skeleton key={i} className="h-24 w-full" />
+          <Skeleton key={i} className="h-48 w-full" />
         ))}
       </div>
     );
@@ -97,7 +150,7 @@ export default function OrderHistory({ userEmail }: OrderHistoryProps) {
   return (
     <div className="space-y-4">
       {orders.map((order) => (
-        <OrderCard key={order.id} order={order} />
+        <UserOrderCard key={order.id} order={order} />
       ))}
     </div>
   );
