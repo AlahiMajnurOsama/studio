@@ -14,10 +14,11 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
 
 const profileSchema = z.object({
   displayName: z.string().min(1, "Name is required."),
@@ -68,51 +69,58 @@ export default function ProfileEditor({ user }: ProfileEditorProps) {
   }
 
   return (
-    <div className="space-y-6">
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(handleUpdateProfile)} className="space-y-4">
-          <FormField
-            control={form.control}
-            name="displayName"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Full Name</FormLabel>
-                <FormControl>
-                  <Input placeholder="Your Name" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="email"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Email</FormLabel>
-                <FormControl>
-                  <Input placeholder="your@email.com" {...field} disabled />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <Button type="submit" disabled={isSubmitting}>
-            {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Save Changes
+    <Card>
+      <CardContent className="p-6 space-y-6">
+        <div>
+          <h3 className="text-lg font-medium">Account Information</h3>
+          <p className="text-sm text-muted-foreground">Update your personal details here.</p>
+        </div>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(handleUpdateProfile)} className="space-y-4">
+            <FormField
+              control={form.control}
+              name="displayName"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Full Name</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Your Name" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Email</FormLabel>
+                  <FormControl>
+                    <Input placeholder="your@email.com" {...field} disabled />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Save Changes
+            </Button>
+          </form>
+        </Form>
+        <Separator />
+        <div>
+          <h3 className="text-lg font-medium">Password</h3>
+          <p className="text-sm text-muted-foreground mb-4">
+              Click the button below to receive a password reset link in your email.
+          </p>
+          <Button variant="outline" onClick={handlePasswordReset} disabled={isResetting}>
+              {isResetting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Send Password Reset Email
           </Button>
-        </form>
-      </Form>
-      <div>
-         <h3 className="font-semibold mb-2">Password</h3>
-         <p className="text-sm text-muted-foreground mb-4">
-            Click the button below to receive a password reset link in your email.
-        </p>
-         <Button variant="outline" onClick={handlePasswordReset} disabled={isResetting}>
-            {isResetting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Send Password Reset Email
-        </Button>
-      </div>
-    </div>
+        </div>
+      </CardContent>
+    </Card>
   );
 }
