@@ -51,7 +51,7 @@ export default function AdminChatPage() {
         }
       }, 100);
     }
-  }, [activeSession, activeSession?.messages]);
+  }, [activeSession?.messages]);
 
 
   const handleSendMessage = () => {
