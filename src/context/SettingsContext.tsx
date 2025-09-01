@@ -8,10 +8,11 @@ interface Settings {
   brandName: string;
   receiptThanksText: string;
   heroImageUrls: [string, string, string];
+  isChatEnabled: boolean;
 }
 
 interface SettingsContextType extends Settings {
-  updateSettings: (newSettings: Partial<Settings>) => void;
+  updateSettings: (newSettings: Partial<Settings>) => Promise<void>;
   isSettingsLoading: boolean;
 }
 
@@ -25,6 +26,7 @@ const defaultSettings: Settings = {
     "https://picsum.photos/seed/hero2/1200/400",
     "https://picsum.photos/seed/hero3/1200/400",
   ],
+  isChatEnabled: true,
 };
 
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
@@ -47,22 +49,31 @@ export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }
   }, []);
 
   const updateSettings = useCallback(async (newSettings: Partial<Settings>) => {
-    try {
-      const updatedSettings = { ...settings, ...newSettings };
-      setSettings(updatedSettings);
-      localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(updatedSettings));
-      toast({
-        title: "Settings Updated!",
-        description: "Your changes have been saved locally."
-      });
-    } catch (error) {
-      console.error("Failed to save settings to localStorage", error);
-      toast({
-        title: "Error",
-        description: "Could not save settings.",
-        variant: "destructive"
-      });
-    }
+    return new Promise<void>((resolve) => {
+      try {
+        const updatedSettings = { ...settings, ...newSettings };
+        setSettings(updatedSettings);
+        localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(updatedSettings));
+        
+        // Use a timeout to ensure the state update is processed before showing the toast
+        setTimeout(() => {
+          toast({
+            title: "Settings Updated!",
+            description: "Your changes have been saved locally."
+          });
+          resolve();
+        }, 0);
+
+      } catch (error) {
+        console.error("Failed to save settings to localStorage", error);
+        toast({
+          title: "Error",
+          description: "Could not save settings.",
+          variant: "destructive"
+        });
+        resolve();
+      }
+    });
   }, [settings, toast]);
 
   return (

@@ -24,6 +24,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/hooks/useAuth";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
+import { Switch } from "@/components/ui/switch";
 
 const settingsFormSchema = z.object({
   brandName: z.string().min(1, "Brand name is required."),
@@ -33,6 +34,7 @@ const settingsFormSchema = z.object({
     z.string().url("Must be a valid URL."),
     z.string().url("Must be a valid URL."),
   ]),
+  isChatEnabled: z.boolean(),
 });
 
 type SettingsFormValues = z.infer<typeof settingsFormSchema>;
@@ -45,6 +47,7 @@ export default function SiteSettingsPage() {
     brandName,
     receiptThanksText,
     heroImageUrls,
+    isChatEnabled,
     updateSettings,
     isSettingsLoading,
   } = useSettings();
@@ -55,6 +58,7 @@ export default function SiteSettingsPage() {
       brandName,
       receiptThanksText,
       heroImageUrls,
+      isChatEnabled,
     },
   });
 
@@ -148,7 +152,7 @@ export default function SiteSettingsPage() {
                 <CardHeader>
                     <CardTitle>Customer Communication</CardTitle>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="space-y-4">
                     <FormField
                         control={form.control}
                         name="receiptThanksText"
@@ -168,6 +172,26 @@ export default function SiteSettingsPage() {
                         </FormItem>
                         )}
                     />
+                     <FormField
+                        control={form.control}
+                        name="isChatEnabled"
+                        render={({ field }) => (
+                          <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                            <div className="space-y-0.5">
+                              <FormLabel>Enable Live Chat</FormLabel>
+                              <FormDescription>
+                                Show the live chat widget to customers on the storefront.
+                              </FormDescription>
+                            </div>
+                            <FormControl>
+                              <Switch
+                                checked={field.value}
+                                onCheckedChange={field.onChange}
+                              />
+                            </FormControl>
+                          </FormItem>
+                        )}
+                      />
                 </CardContent>
               </Card>
               
