@@ -34,7 +34,6 @@ const settingsFormSchema = z.object({
     z.string().url("Must be a valid URL."),
     z.string().url("Must be a valid URL."),
   ]),
-  isChatEnabled: z.boolean(),
 });
 
 type SettingsFormValues = z.infer<typeof settingsFormSchema>;
@@ -47,7 +46,6 @@ export default function SiteSettingsPage() {
     brandName,
     receiptThanksText,
     heroImageUrls,
-    isChatEnabled,
     updateSettings,
     isSettingsLoading,
   } = useSettings();
@@ -58,7 +56,6 @@ export default function SiteSettingsPage() {
       brandName,
       receiptThanksText,
       heroImageUrls,
-      isChatEnabled,
     },
   });
 
@@ -172,26 +169,6 @@ export default function SiteSettingsPage() {
                         </FormItem>
                         )}
                     />
-                     <FormField
-                        control={form.control}
-                        name="isChatEnabled"
-                        render={({ field }) => (
-                          <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                            <div className="space-y-0.5">
-                              <FormLabel>Enable Live Chat</FormLabel>
-                              <FormDescription>
-                                Show the live chat widget to customers on the storefront.
-                              </FormDescription>
-                            </div>
-                            <FormControl>
-                              <Switch
-                                checked={field.value}
-                                onCheckedChange={field.onChange}
-                              />
-                            </FormControl>
-                          </FormItem>
-                        )}
-                      />
                 </CardContent>
               </Card>
               

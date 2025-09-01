@@ -1,6 +1,7 @@
 
 
 
+
 export type ProductVariant = {
   name: string;
   priceModifier?: number;
@@ -68,21 +69,3 @@ export type Order = {
     discountAmount: number;
   };
 };
-
-export type ChatMessage = {
-  id: string;
-  sender: 'user' | 'admin';
-  content: string;
-  timestamp: number;
-  type: 'text' | 'image';
-};
-
-export type ChatSession = {
-  id: string; // Corresponds to user's UID or a unique session ID for guests
-  userName: string;
-  messages: ChatMessage[];
-  status: 'open' | 'closed';
-  lastMessageAt: number;
-  isReadByAdmin: boolean;
-};
-

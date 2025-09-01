@@ -7,7 +7,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Skeleton } from "@/components/ui/skeleton";
 import Link from "next/link";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Package, Users, ArrowRight, DollarSign, Tag, Settings, MessageCircle } from "lucide-react";
+import { Package, Users, ArrowRight, DollarSign, Tag, Settings } from "lucide-react";
 import { useNavigation } from "@/hooks/useNavigation";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -88,7 +88,6 @@ export default function AdminDashboardPage() {
     { title: "Total Customers", value: 4, icon: Users, href: "/admin/users", color: "text-purple-500", bgColor: "bg-gradient-to-br from-purple-500 to-purple-700" },
     { title: "Transactions", value: 3, icon: DollarSign, href: "/admin/transactions", color: "text-green-500", bgColor: "bg-gradient-to-br from-green-500 to-green-700" },
     { title: "Manage Coupons", value: 4, icon: Tag, href: "/admin/coupons", color: "text-orange-500", bgColor: "bg-gradient-to-br from-orange-500 to-orange-700" },
-    { title: "Live Chat", value: 'Live', icon: MessageCircle, href: "/admin/chat", color: "text-pink-500", bgColor: "bg-gradient-to-br from-pink-500 to-pink-700" },
   ];
 
   return (
@@ -103,7 +102,7 @@ export default function AdminDashboardPage() {
             </Button>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {stats.map((stat) => (
              <StatCard 
                 key={stat.title}

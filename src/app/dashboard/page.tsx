@@ -7,7 +7,6 @@ import { useAuth } from "@/hooks/useAuth";
 import { Skeleton } from "@/components/ui/skeleton";
 import ProfileEditor from "./ProfileEditor";
 import OrderHistory from "./OrderHistory";
-import ChatCard from "./ChatCard";
 import BottomNavBar, { type ActiveTab } from "./BottomNavBar";
 
 export default function DashboardPage() {
@@ -54,10 +53,6 @@ export default function DashboardPage() {
               <h2 className="text-2xl font-semibold mb-4">Order History</h2>
               <OrderHistory userEmail={user.email!} />
             </div>
-            <div>
-                <h2 className="text-2xl font-semibold mb-4">Live Chat Support</h2>
-                <ChatCard />
-            </div>
         </div>
         <div className="lg:col-span-1">
           <h2 className="text-2xl font-semibold mb-4">My Profile</h2>
@@ -78,12 +73,6 @@ export default function DashboardPage() {
              <h2 className="text-2xl font-semibold mb-4">My Profile</h2>
              <ProfileEditor user={user} />
            </div>
-        )}
-        {activeTab === 'chat' && (
-          <div>
-            <h2 className="text-2xl font-semibold mb-4">Live Chat Support</h2>
-            <ChatCard />
-          </div>
         )}
       </div>
 

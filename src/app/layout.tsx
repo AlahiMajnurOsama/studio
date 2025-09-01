@@ -9,8 +9,6 @@ import PageLoader from '@/components/PageLoader';
 import { AuthProvider } from '@/hooks/useAuth';
 import { CartProvider } from '@/hooks/useCart';
 import { SettingsProvider } from '@/context/SettingsContext';
-import { ChatProvider } from '@/hooks/useChat';
-import LiveChatWidget from '@/components/LiveChatWidget';
 
 export const metadata: Metadata = {
   title: 'ChromaShop',
@@ -40,16 +38,13 @@ export default function RootLayout({
         <AppProvider>
           <SettingsProvider>
             <AuthProvider>
-              <ChatProvider>
                 <WishlistProvider>
                   <CartProvider>
                     <Header />
                     <main className="flex-grow pt-20 animate-fade-in">{children}</main>
                     <PageLoader />
-                    <LiveChatWidget />
                   </CartProvider>
                 </WishlistProvider>
-              </ChatProvider>
             </AuthProvider>
           </SettingsProvider>
         </AppProvider>

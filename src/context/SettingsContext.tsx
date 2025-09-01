@@ -8,7 +8,6 @@ interface Settings {
   brandName: string;
   receiptThanksText: string;
   heroImageUrls: [string, string, string];
-  isChatEnabled: boolean;
 }
 
 interface SettingsContextType extends Settings {
@@ -26,7 +25,6 @@ const defaultSettings: Settings = {
     "https://picsum.photos/seed/hero2/1200/400",
     "https://picsum.photos/seed/hero3/1200/400",
   ],
-  isChatEnabled: true,
 };
 
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);

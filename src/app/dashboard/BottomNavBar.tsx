@@ -2,11 +2,11 @@
 "use client";
 
 import type { Dispatch, SetStateAction } from 'react';
-import { LayoutDashboard, Settings, MessageCircle } from "lucide-react";
+import { LayoutDashboard, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
-export type ActiveTab = 'dashboard' | 'settings' | 'chat';
+export type ActiveTab = 'dashboard' | 'settings';
 
 interface BottomNavBarProps {
   activeTab: ActiveTab;
@@ -17,12 +17,11 @@ export default function BottomNavBar({ activeTab, setActiveTab }: BottomNavBarPr
   const navItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'settings', label: 'Settings', icon: Settings },
-    { id: 'chat', label: 'Live Chat', icon: MessageCircle },
   ];
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-40 border-t bg-background/95 backdrop-blur-sm md:hidden">
-      <div className="grid h-16 grid-cols-3">
+      <div className="grid h-16 grid-cols-2">
         {navItems.map((item) => (
           <Button
             key={item.id}
