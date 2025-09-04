@@ -7,7 +7,6 @@ import {
   useEffect,
   ReactNode,
   useCallback,
-  useTransition,
 } from 'react';
 
 type Theme = 'light' | 'dark';
@@ -26,9 +25,8 @@ interface AppContextType {
   toggleCategory: (category: string) => void;
   clearFilters: () => void;
   isPageLoading: boolean;
-  setPageLoading: (isLoading: boolean) => void;
+  withLoader: <T>(action: () => Promise<T> | T) => Promise<T>;
   isInitialLoading: boolean;
-  setIsInitialLoading: (isLoading: boolean) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -41,7 +39,6 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [isPageLoading, setPageLoading] = useState(false);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
-  const [isPending, startTransition] = useTransition();
 
   useEffect(() => {
     const storedTheme = localStorage.getItem('theme') as Theme | null;
@@ -57,26 +54,27 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     document.documentElement.className = newTheme;
   };
 
+  const withLoader = async <T>(action: () => Promise<T> | T): Promise<T> => {
+    setPageLoading(true);
+    try {
+      return await action();
+    } finally {
+      setPageLoading(false);
+    }
+  };
+
   const toggleCategory = useCallback((category: string) => {
-    startTransition(() => {
-      setSelectedCategories((prev) =>
-        prev.includes(category)
-          ? prev.filter((c) => c !== category)
-          : [...prev, category]
-      );
-    });
+    setSelectedCategories((prev) =>
+      prev.includes(category)
+        ? prev.filter((c) => c !== category)
+        : [...prev, category]
+    );
   }, []);
 
   const clearFilters = useCallback(() => {
-    startTransition(() => {
-      setPriceRange([0, 1000]);
-      setSelectedCategories([]);
-    });
+    setPriceRange([0, 1000]);
+    setSelectedCategories([]);
   }, []);
-
-  useEffect(() => {
-    setPageLoading(isPending);
-  }, [isPending]);
 
   const value = {
     theme,
@@ -91,10 +89,9 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     setSelectedCategories,
     toggleCategory,
     clearFilters,
-    isPageLoading: isPageLoading || isPending,
-    setPageLoading,
+    isPageLoading,
+    withLoader,
     isInitialLoading,
-    setIsInitialLoading,
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

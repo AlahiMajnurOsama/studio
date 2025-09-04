@@ -11,14 +11,14 @@ import { Card, CardContent, CardFooter, CardHeader } from "./ui/card";
 import { cn } from "@/lib/utils";
 import { useCart } from "@/hooks/useCart";
 import { useRouter } from "next/navigation";
-import { useTransition, useEffect } from "react";
+import { useTransition, useEffect, memo } from "react";
 import { useAppContext } from "@/context/AppContext";
 
 interface ProductCardProps {
   product: Product;
 }
 
-const ProductCard = ({ product }: ProductCardProps) => {
+const ProductCard = memo(({ product }: ProductCardProps) => {
   const { isInWishlist, addToWishlist, removeFromWishlist } = useWishlist();
   const { addToCart } = useCart();
   const isWishlisted = isInWishlist(product.id);

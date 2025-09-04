@@ -4,7 +4,8 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import type { CartItem, Product, ProductVariant, Coupon } from '@/lib/types';
 import { useToast } from './use-toast';
-import { coupons as allCoupons } from '@/lib/data';
+import { getCoupons } from '@/lib/data';
+import { useAppContext } from '@/context/AppContext';
 
 interface CartContextType {
   cart: CartItem[];
@@ -28,8 +29,10 @@ const COUPON_STORAGE_KEY = 'chromashop_coupon';
 
 export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [cart, setCart] = useState<CartItem[]>([]);
+  const [allCoupons, setAllCoupons] = useState<Coupon[]>([]);
   const [appliedCoupon, setAppliedCoupon] = useState<Coupon | null>(null);
   const { toast } = useToast();
+  const { withLoader } = useAppContext();
 
   useEffect(() => {
     try {
@@ -38,6 +41,12 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       const storedCoupon = localStorage.getItem(COUPON_STORAGE_KEY);
       if (storedCoupon) setAppliedCoupon(JSON.parse(storedCoupon));
+
+      const fetchCoupons = async () => {
+        const coupons = await getCoupons();
+        setAllCoupons(coupons);
+      };
+      fetchCoupons();
     } catch (error) {
       console.error("Failed to parse cart/coupon from localStorage", error);
     }
@@ -62,7 +71,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     selectedColor: null = null,
     selectedSize: string | null = null,
     selectedVariant: ProductVariant | null = null
-  ) => {
+  ) => withLoader(() => {
     const cartItemId = `${product.id}-${selectedSize || 'default'}-${selectedVariant?.name || 'default'}`;
     const pricePerItem = product.price + (selectedVariant?.priceModifier || 0);
 
@@ -84,14 +93,14 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       title: "Added to Bag!",
       description: `${product.name} is now in your shopping bag.`,
     });
-  }, [toast]);
+  }), [toast, withLoader]);
 
-  const removeFromCart = useCallback((cartItemId: string) => {
+  const removeFromCart = useCallback((cartItemId: string) => withLoader(() => {
     setCart(prevCart => prevCart.filter(item => item.id !== cartItemId));
     toast({ title: "Item Removed", description: "The item has been removed from your bag." });
-  }, [toast]);
+  }), [toast, withLoader]);
 
-  const updateQuantity = useCallback((cartItemId: string, newQuantity: number) => {
+  const updateQuantity = useCallback((cartItemId: string, newQuantity: number) => withLoader(() => {
     if (newQuantity <= 0) {
       removeFromCart(cartItemId);
     } else {
@@ -101,19 +110,19 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         )
       );
     }
-  }, [removeFromCart]);
+  }), [removeFromCart, withLoader]);
   
-  const clearCart = useCallback(() => {
+  const clearCart = useCallback(() => withLoader(() => {
     setCart([]);
     setAppliedCoupon(null);
     toast({ title: "Cart Cleared", description: "All items have been removed from your bag." });
-  }, [toast]);
+  }), [toast, withLoader]);
 
   const totalItems = useMemo(() => cart.reduce((total, item) => total + item.quantity, 0), [cart]);
 
   const subtotal = useMemo(() => cart.reduce((total, item) => total + (item.pricePerItem * item.quantity), 0), [cart]);
 
-  const applyCoupon = useCallback((couponCode: string) => {
+  const applyCoupon = useCallback((couponCode: string) => withLoader(() => {
     const couponToApply = allCoupons.find(c => c.code.toUpperCase() === couponCode.toUpperCase());
     
     if (!couponToApply) {
@@ -135,12 +144,12 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     setAppliedCoupon(couponToApply);
     toast({ title: "Coupon Applied!", description: `Success! ${couponToApply.description}.` });
-  }, [subtotal, cart, toast]);
+  }), [subtotal, cart, toast, withLoader]);
 
-  const removeCoupon = useCallback(() => {
+  const removeCoupon = useCallback(() => withLoader(() => {
     setAppliedCoupon(null);
     toast({ title: "Coupon Removed" });
-  }, [toast]);
+  }), [toast, withLoader]);
 
   const discount = useMemo(() => {
     if (!appliedCoupon) return 0;
