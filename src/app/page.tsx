@@ -3,7 +3,7 @@
 
 import { useEffect, useState, useMemo } from "react";
 import type { Product } from "@/lib/types";
-import { products as localProducts } from "@/lib/data";
+import { getProducts } from "@/lib/data";
 import ProductCard from "@/components/ProductCard";
 import {
   Select,
@@ -47,46 +47,23 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Simulate fetching data
-    setTimeout(() => {
-        setProducts(localProducts);
-        setLoading(false);
-    }, 500);
-  }, []);
+    const fetchProducts = async () => {
+      setLoading(true);
+      const products = await getProducts({
+        search,
+        sort,
+        priceRange,
+        categories: selectedCategories,
+      });
+      setProducts(products);
+      setLoading(false);
+    };
+    fetchProducts();
+  }, [search, sort, priceRange, selectedCategories]);
 
   const allCategories = useMemo(() => Array.from(new Set(products.map((p) => p.category))), [products]);
 
-  const filteredProducts = useMemo(() => {
-    return products
-      .filter((product) => {
-        const searchLower = search.toLowerCase();
-        const nameMatch = product.name.toLowerCase().includes(searchLower);
-        const descriptionMatch = product.description
-          .toLowerCase()
-          .includes(searchLower);
-        const priceMatch =
-          product.price >= priceRange[0] && product.price <= priceRange[1];
-        const categoryMatch =
-          selectedCategories.length === 0 ||
-          selectedCategories.includes(product.category);
-
-        return (
-          (nameMatch || descriptionMatch) && priceMatch && categoryMatch
-        );
-      })
-      .sort((a, b) => {
-        switch (sort) {
-          case "price-asc":
-            return a.price - b.price;
-          case "price-desc":
-            return b.price - a.price;
-          case "popularity-desc":
-            return b.popularity - a.popularity;
-          default:
-            return 0;
-        }
-      });
-  }, [search, sort, priceRange, selectedCategories, products]);
+  const filteredProducts = products;
 
   const heroBanners = [
     {

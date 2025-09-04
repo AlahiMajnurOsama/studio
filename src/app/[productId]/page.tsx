@@ -1,5 +1,5 @@
 import type { Product } from "@/lib/types";
-import { products as allProducts } from "@/lib/data";
+import { getProductById, getProductsByCategory } from "@/lib/data";
 import { notFound } from "next/navigation";
 import ProductDetailsClient from "./ProductDetailsClient";
 import ProductCard from "@/components/ProductCard";
@@ -7,16 +7,14 @@ import ProductCard from "@/components/ProductCard";
 export const dynamic = 'force-dynamic';
 
 async function getProduct(productId: string): Promise<Product | null> {
-  const product = allProducts.find(p => p.id === productId);
-  return product ? product : null;
+  return getProductById(productId);
 }
 
 async function getRelatedProducts(product: Product): Promise<Product[]> {
     if (!product.category) return [];
     
-    return allProducts
-        .filter(p => p.category === product.category && p.id !== product.id)
-        .slice(0, 4);
+    const related = await getProductsByCategory(product.category, 4);
+    return related.filter(p => p.id !== product.id);
 }
 
 

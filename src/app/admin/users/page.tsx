@@ -52,6 +52,7 @@ import { Badge } from "@/components/ui/badge";
 
 import { deleteUser, getAllUsers, updateUser, setUserAdminStatus, generatePasswordResetLink } from "./actions";
 import { useNavigation } from "@/hooks/useNavigation";
+import { useAppContext } from "@/context/AppContext";
 
 
 const editUserSchema = z.object({
@@ -67,6 +68,7 @@ export default function AdminUsersPage() {
   const router = useRouter();
   const { toast } = useToast();
   const { handleNav } = useNavigation();
+  const { withLoader } = useAppContext();
 
   const [users, setUsers] = useState<UserRecord[]>([]);
   const [loading, setLoading] = useState(true);
@@ -98,7 +100,7 @@ export default function AdminUsersPage() {
     }
   }, [user, authLoading, isAdmin, router]);
 
-  const fetchUsers = async () => {
+  const fetchUsers = async () => withLoader(async () => {
     setLoading(true);
     const result = await getAllUsers();
     if (result.success && result.users) {
@@ -111,7 +113,7 @@ export default function AdminUsersPage() {
       });
     }
     setLoading(false);
-  };
+  });
 
   useEffect(() => {
     if (user && isAdmin) {
@@ -119,7 +121,7 @@ export default function AdminUsersPage() {
     }
   }, [user, isAdmin, toast]);
 
-  const handleDeleteUser = async (uid: string) => {
+  const handleDeleteUser = async (uid: string) => withLoader(async () => {
     const result = await deleteUser(uid);
     if (result.success) {
       toast({
@@ -134,14 +136,14 @@ export default function AdminUsersPage() {
         variant: "destructive",
       });
     }
-  };
+  });
 
   const handleEditUser = (user: UserRecord) => {
     setEditingUser(user);
     setIsEditModalOpen(true);
   };
   
-  const handleUpdateUser = async (values: EditUserFormValues) => {
+  const handleUpdateUser = async (values: EditUserFormValues) => withLoader(async () => {
     if (!editingUser) return;
     const result = await updateUser(editingUser.uid, values);
     if (result.success) {
@@ -152,9 +154,9 @@ export default function AdminUsersPage() {
     } else {
         toast({ title: "Error updating user", description: result.error, variant: "destructive" });
     }
-  };
+  });
 
-  const handleToggleAdmin = async (uid: string, isAdmin: boolean) => {
+  const handleToggleAdmin = async (uid: string, isAdmin: boolean) => withLoader(async () => {
       const result = await setUserAdminStatus(uid, isAdmin);
       if (result.success) {
           toast({ title: `User role ${isAdmin ? 'granted' : 'revoked'} successfully!` });
@@ -162,9 +164,9 @@ export default function AdminUsersPage() {
       } else {
           toast({ title: "Error changing user role", description: result.error, variant: "destructive" });
       }
-  };
+  });
 
-  const handleGenerateResetLink = async (email: string) => {
+  const handleGenerateResetLink = async (email: string) => withLoader(async () => {
       const result = await generatePasswordResetLink(email);
       if (result.success && result.link) {
           setResetLink(result.link);
@@ -172,7 +174,7 @@ export default function AdminUsersPage() {
       } else {
           toast({ title: "Error generating link", description: result.error, variant: "destructive" });
       }
-  }
+  });
 
   const copyResetLink = () => {
     if(resetLink) {

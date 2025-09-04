@@ -1,197 +1,75 @@
-
-
+import { getFirestore, collection, getDocs, doc, getDoc, query, where, limit } from 'firebase/firestore';
+import { db } from './firebase';
 import type { Product, Coupon } from './types';
 
-export const products: Product[] = [
-  {
-    id: '1',
-    name: 'Aura Headphones',
-    description: 'High-fidelity wireless headphones with noise-cancellation. Immersive sound in a sleek, modern design.',
-    price: 249.99,
-    image: 'https://picsum.photos/seed/aura/600/400',
-    category: 'Electronics',
-    variants: [{ name: 'Standard' }, { name: 'Pro', priceModifier: 50 }],
-    popularity: 95,
-  },
-  {
-    id: '2',
-    name: 'ChromaBloom Vase',
-    description: 'A minimalist ceramic vase that adds a pop of color to any room. Perfect for single stems or small bouquets.',
-    price: 45.0,
-    image: 'https://picsum.photos/seed/chroma/600/400',
-    category: 'Home & Living',
-    sizes: ['Small', 'Medium', 'Large'],
-    popularity: 88,
-  },
-  {
-    id: '3',
-    name: 'Spectrum Tee',
-    description: 'A comfortable, 100% organic cotton t-shirt with a subtle, embroidered color spectrum logo.',
-    price: 35.5,
-    image: 'https://picsum.photos/seed/spectrum/600/400',
-    category: 'Fashion',
-    sizes: ['S', 'M', 'L', 'XL'],
-    popularity: 92,
-  },
-  {
-    id: '4',
-    name: 'Kinetic Desk Lamp',
-    description: 'A smart desk lamp with adjustable color temperature and brightness. Control it via app or touch.',
-    price: 120.0,
-    image: 'https://picsum.photos/seed/kinetic/600/400',
-    category: 'Electronics',
-    popularity: 85,
-  },
-  {
-    id: '5',
-    name: 'Nova Smartwatch',
-    description: 'Track your fitness and stay connected with the Nova Smartwatch. Features a vibrant, customizable display.',
-    price: 199.5,
-    image: 'https://picsum.photos/seed/nova/600/400',
-    category: 'Electronics',
-    variants: [
-      { name: 'Standard' },
-      { name: 'Titanium', priceModifier: 80 },
-    ],
-    popularity: 98,
-  },
-  {
-    id: '6',
-    name: 'Flow Yoga Mat',
-    description: 'A durable, non-slip yoga mat made from eco-friendly materials. Your perfect partner for mindfulness.',
-    price: 65.0,
-    image: 'https://picsum.photos/seed/flow/600/400',
-    category: 'Health & Beauty',
-    popularity: 78,
-  },
-  {
-    id: '7',
-    name: 'Gradient Mug',
-    description: 'Start your day with a splash of color. This ceramic mug features a beautiful gradient finish.',
-    price: 22.0,
-    image: 'https://picsum.photos/seed/gradient/600/400',
-    category: 'Home & Living',
-    popularity: 91,
-  },
-  {
-    id: '8',
-    name: 'Orbit Wall Clock',
-    description: 'A modern, silent wall clock with a minimalist design. Tells time without the ticking.',
-    price: 75.0,
-    image: 'https://picsum.photos/seed/orbit/600/400',
-    category: 'Home & Living',
-    popularity: 80,
-  },
-  {
-    id: '9',
-    name: 'Hue Ambient Light',
-    description: 'Set the mood with this smart ambient light. Choose from millions of colors to create the perfect atmosphere.',
-    price: 89.99,
-    image: 'https://picsum.photos/seed/hue/600/400',
-    category: 'Electronics',
-    popularity: 96,
-  },
-  {
-    id: '10',
-    name: 'Crisp White Sneakers',
-    description: 'Versatile and stylish sneakers that pair with any outfit. Made with premium, sustainable materials.',
-    price: 135.0,
-    image: 'https://picsum.photos/seed/sneakers/600/400',
-    category: 'Fashion',
-    sizes: ['8', '9', '10', '11', '12'],
-    popularity: 89,
-  },
-  {
-    id: '11',
-    name: 'Aero Backpack',
-    description: 'A sleek, water-resistant backpack for your daily commute or weekend adventures. Padded laptop sleeve included.',
-    price: 110.0,
-    image: 'https://picsum.photos/seed/aero/600/400',
-    category: 'Fashion',
-    popularity: 93,
-  },
-  {
-    id: '12',
-    name: 'Plush Throw Blanket',
-    description: 'Get cozy with this incredibly soft throw blanket. Perfect for movie nights on the couch.',
-    price: 55.0,
-    image: 'https://picsum.photos/seed/plush/600/400',
-    category: 'Home & Living',
-    sizes: ['Standard', 'King'],
-    popularity: 84,
-  },
-  {
-    id: '13',
-    name: 'Gourmet Coffee Beans',
-    description: 'Start your day right with our ethically sourced, single-origin Arabica coffee beans. Rich and aromatic.',
-    price: 18.5,
-    image: 'https://picsum.photos/seed/coffee/600/400',
-    category: 'Groceries',
-    popularity: 87,
-  },
-  {
-    id: '14',
-    name: 'Artisanal Olive Oil',
-    description: 'Cold-pressed extra virgin olive oil from heritage groves. Perfect for dressings and finishing dishes.',
-    price: 25.0,
-    image: 'https://picsum.photos/seed/oil/600/400',
-    category: 'Groceries',
-    popularity: 76,
-  },
-  {
-    id: '15',
-    name: 'Organic Face Serum',
-    description: 'A rejuvenating face serum packed with antioxidants to hydrate and brighten your skin naturally.',
-    price: 42.0,
-    image: 'https://picsum.photos/seed/serum/600/400',
-    category: 'Health & Beauty',
-    popularity: 81,
-  },
-  {
-    id: '16',
-    name: 'Zen Garden Incense Kit',
-    description: 'Create a tranquil space with our incense kit, featuring sandalwood sticks and a ceramic holder.',
-    price: 30.0,
-    image: 'https://picsum.photos/seed/zen/600/400',
-    category: 'Health & Beauty',
-    popularity: 72,
-  },
-];
+export async function getProducts(options: {
+  search?: string;
+  sort?: string;
+  priceRange?: [number, number];
+  categories?: string[];
+} = {}): Promise<Product[]> {
+  const { search = '', sort = 'popularity-desc', priceRange = [0, 1000], categories = [] } = options;
 
+  let q = query(collection(db, 'products'));
 
-export const coupons: Coupon[] = [
-  {
-    code: 'SAVE10',
-    type: 'percentage',
-    value: 10,
-    scope: 'order',
-    minSpend: 50,
-    description: '10% off on orders over $50',
-    isActive: true,
-  },
-  {
-    code: 'AURA20',
-    type: 'percentage',
-    value: 20,
-    scope: 'product',
-    productId: '1',
-    description: '20% off Aura Headphones',
-    isActive: true,
-  },
-  {
-    code: '5OFF',
-    type: 'fixed',
-    value: 5,
-    scope: 'order',
-    description: '$5 off any order',
-    isActive: true,
-  },
-  {
-    code: 'EXPIRED',
-    type: 'percentage',
-    value: 15,
-    scope: 'order',
-    description: 'An expired coupon for testing',
-    isActive: false,
+  if (categories.length > 0) {
+    q = query(q, where('category', 'in', categories));
   }
-];
+
+  if (priceRange[0] > 0) {
+    q = query(q, where('price', '>=', priceRange[0]));
+  }
+
+  if (priceRange[1] < 1000) {
+    q = query(q, where('price', '<=', priceRange[1]));
+  }
+
+  // Firestore does not support full-text search, so we'll have to do this on the client side.
+  // We'll also do the sorting on the client side, as Firestore requires a composite index for sorting by multiple fields.
+
+  const productsSnapshot = await getDocs(q);
+  let products = productsSnapshot.docs.map((doc) => doc.data() as Product);
+
+  if (search) {
+    const searchLower = search.toLowerCase();
+    products = products.filter(
+      (product) =>
+        product.name.toLowerCase().includes(searchLower) ||
+        product.description.toLowerCase().includes(searchLower)
+    );
+  }
+
+  products.sort((a, b) => {
+    switch (sort) {
+      case 'price-asc':
+        return a.price - b.price;
+      case 'price-desc':
+        return b.price - a.price;
+      case 'popularity-desc':
+        return b.popularity - a.popularity;
+      default:
+        return 0;
+    }
+  });
+
+  return products;
+}
+
+export async function getProductById(productId: string): Promise<Product | null> {
+  const productDoc = doc(db, 'products', productId);
+  const productSnapshot = await getDoc(productDoc);
+  return productSnapshot.exists() ? (productSnapshot.data() as Product) : null;
+}
+
+export async function getProductsByCategory(category: string, limitCount: number = 4): Promise<Product[]> {
+    const productsCollection = collection(db, 'products');
+    const q = query(productsCollection, where('category', '==', category), limit(limitCount));
+    const productsSnapshot = await getDocs(q);
+    return productsSnapshot.docs.map((doc) => doc.data() as Product);
+}
+
+export async function getCoupons(): Promise<Coupon[]> {
+  const couponsCollection = collection(db, 'coupons');
+  const couponsSnapshot = await getDocs(couponsCollection);
+  return couponsSnapshot.docs.map((doc) => doc.data() as Coupon);
+}

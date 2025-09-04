@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import { useToast } from './use-toast';
+import { useAppContext } from '@/context/AppContext';
 
 interface WishlistContextType {
   wishlist: string[];
@@ -17,6 +18,7 @@ const WISHLIST_STORAGE_KEY = 'chromashop_wishlist';
 export const WishlistProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [wishlist, setWishlist] = useState<string[]>([]);
   const { toast } = useToast();
+  const { withLoader } = useAppContext();
   const [lastAction, setLastAction] = useState<{ type: 'add' | 'remove'; productId: string } | null>(null);
 
   // Load wishlist from localStorage on initial render
@@ -58,19 +60,19 @@ export const WishlistProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   }, [lastAction, toast]);
 
 
-  const addToWishlist = useCallback((productId: string) => {
+  const addToWishlist = useCallback((productId: string) => withLoader(() => {
     if (!wishlist.includes(productId)) {
       setWishlist(prev => [...prev, productId]);
       setLastAction({ type: 'add', productId });
     }
-  }, [wishlist]);
+  }), [wishlist, withLoader]);
 
-  const removeFromWishlist = useCallback((productId: string) => {
+  const removeFromWishlist = useCallback((productId: string) => withLoader(() => {
     if (wishlist.includes(productId)) {
       setWishlist(prev => prev.filter(id => id !== productId));
       setLastAction({ type: 'remove', productId });
     }
-  }, [wishlist]);
+  }), [wishlist, withLoader]);
 
   const isInWishlist = useCallback((productId: string) => {
     return wishlist.includes(productId);

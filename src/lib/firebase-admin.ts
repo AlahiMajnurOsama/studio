@@ -39,11 +39,13 @@ function initializeAdminApp() {
 
 export function initAdmin() {
   if (admin.apps.length > 0) {
+    console.log('Firebase Admin SDK already initialized.');
     return admin.apps[0]!;
   }
   
   if (!adminApp) {
       adminApp = initializeAdminApp();
+      console.log('Firebase Admin SDK initialized successfully.');
   }
   
   return adminApp;
